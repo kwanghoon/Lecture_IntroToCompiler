@@ -1,0 +1,8 @@
+0: L' -> L
+1: L -> E
+2: L -> lam loc id . L
+3: E -> E T
+4: E -> T
+5: T -> id
+6: T -> num
+7: T -> ( L )
