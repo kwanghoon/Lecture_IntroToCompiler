@@ -86,14 +86,6 @@ public class LexicalAnalyzer {
 						str = "lam";
 						currentTok = Token.LAM;
 						break;
-					case "c":
-						str = "c";
-						currentTok = Token.CLIENT;
-						break;
-					case "s":
-						str = "s";
-						currentTok = Token.SERVER;
-						break;
 					default:
 						currentTok = Token.ID;
 					}
@@ -101,6 +93,30 @@ public class LexicalAnalyzer {
 				else if (ch == ' ' || ch == '\t' || ch == '\n') {
 					strIdx++;
 					continue;
+				}
+				else if (ch == '^') {
+					strIdx++;
+					str = str + ch;
+					if (strIdx < line.length()) {
+						ch = line.charAt(strIdx);
+
+						strIdx++;
+						str = str + ch;
+						switch (str.toLowerCase()) {
+						case "^c":
+							str = "c";
+							currentTok = Token.CLIENT;
+							break;
+						case "^s":
+							str = "s";
+							currentTok = Token.SERVER;
+							break;
+						default:
+							throw new LexerException("Error: " + ch + "");
+						}
+					}
+					else
+						break;
 				}
 				else {
 					switch (ch) {
