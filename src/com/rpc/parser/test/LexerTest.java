@@ -22,7 +22,7 @@ class LexerTest {
 		ArrayList<Terminal> terminals = lexical.Lexing();
 		System.out.println("----test1----");
 		assertTrue(terminals.get(0).getToken() == Token.LAM);
-		assertTrue(terminals.get(1).getToken() == Token.CLIENT);
+		assertTrue(terminals.get(1).getToken() == Token.LOC);
 		assertTrue(terminals.get(2).getToken() == Token.ID);
 		assertTrue(terminals.get(3).getToken() == Token.DOT);
 		assertTrue(terminals.get(4).getToken() == Token.ID);

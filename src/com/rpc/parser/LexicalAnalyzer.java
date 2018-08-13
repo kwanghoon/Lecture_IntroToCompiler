@@ -105,11 +105,11 @@ public class LexicalAnalyzer {
 						switch (str.toLowerCase()) {
 						case "^c":
 							str = "c";
-							currentTok = Token.CLIENT;
+							currentTok = Token.LOC;
 							break;
 						case "^s":
 							str = "s";
-							currentTok = Token.SERVER;
+							currentTok = Token.LOC;
 							break;
 						default:
 							throw new LexerException("Error: " + ch + "");

@@ -3,8 +3,7 @@ package com.rpc.parser;
 public enum Token {
 	END_OF_TOKEN("$"),
 	OPENPAREN("("), CLOSEPAREN(")"),
-	DOT("."),
-	CLIENT("c"), SERVER("s"),
+	DOT("."), LOC("loc"),
 	LAM("lam"), ID("id"), NUM("num");
 	
 	private String strToken;
