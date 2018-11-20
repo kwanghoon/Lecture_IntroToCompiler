@@ -1,5 +1,7 @@
 package com.rpc.parser;
 
+import com.rpc.lib.ParserException;
+
 public enum Token {
 	END_OF_TOKEN("$"),
 	OPENPAREN("("), CLOSEPAREN(")"),

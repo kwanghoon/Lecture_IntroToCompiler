@@ -1,76 +1,177 @@
-package com.rpc.parser;
+package com.rpc.lib;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.rpc.parser.Token;
 
 public class CommonParserUtil {
+	// Lexer part
+	private int lineno;
+	private String endOfTok;
+
+	private BufferedReader br;
+	private ArrayList<String> lineArr;
 	private ArrayList<Terminal> lexer;
-	
+
+	private HashMap<String, TokenBuilder> tokenBuilders;
+
+	// Parser part
 	private ArrayList<String> action_table;
 	private ArrayList<String> goto_table;
 	private HashMap<Integer, String> grammar_rules;
-	
+
 	private HashMap<String, TreeBuilder> treeBuilders;
-	
+
 	private Stack<Stkelem> stack;
-	
+
 	private int productionRuleIdx;
 
-	public CommonParserUtil(ArrayList<Terminal> lexer) throws IOException {
+	public CommonParserUtil() throws IOException {
 		super();
-		this.lexer = lexer;
-		
+		this.lexer = new ArrayList<Terminal>();
+
 		stack = new Stack<>();
 
 		action_table = new ArrayList<>();
 		goto_table = new ArrayList<>();
 		grammar_rules = new HashMap<>();
-		
+
 		treeBuilders = new HashMap<>();
+		tokenBuilders = new HashMap<>();
 
 		readInitialize();
 	}
+	/*
+	 * public CommonParserUtil(ArrayList<Terminal> lexer) throws IOException {
+	 * super(); this.lexer = lexer;
+	 * 
+	 * stack = new Stack<>();
+	 * 
+	 * action_table = new ArrayList<>(); goto_table = new ArrayList<>();
+	 * grammar_rules = new HashMap<>();
+	 * 
+	 * treeBuilders = new HashMap<>(); tokenBuilders = new HashMap<>();
+	 * 
+	 * readInitialize(); }
+	 */
 
 	public Object get(int i) {
 		String productionRuleStr = grammar_rules.get(productionRuleIdx);
 		String[] splitRule = productionRuleStr.split("[\t ]");
 		int length = splitRule.length - 2;
-		
+
 		int last_stack_tree_index = stack.size() - 1;
 		int offset = (length * 2) - ((i - 1) * 2 + 1);
-		Stkelem getStk = stack.get(last_stack_tree_index - offset);
-		
-		if (getStk instanceof Terminal) {
-			getStk = stack.get(last_stack_tree_index - 1);
-		}
-		
-		Nonterminal nt = (Nonterminal) getStk;
-		
+		Nonterminal nt = (Nonterminal) stack.get(last_stack_tree_index - offset);
+
 		return nt.getTree();
 	}
-	
+
 	public String getText(int i) {
 		String productionRuleStr = grammar_rules.get(productionRuleIdx);
 		String[] splitRule = productionRuleStr.split("[\t ]");
 		int length = splitRule.length - 2;
-		
+
 		int last_stack_tree_index = stack.size() - 1;
 		int offset = (length * 2) - ((i - 1) * 2 + 1);
 		Terminal nt = (Terminal) stack.get(last_stack_tree_index - offset);
-		
+
 		return nt.getSyntax();
 	}
-	
+
 	public void rule(String productionRule, TreeBuilder tb) {
 		treeBuilders.put(productionRule, tb);
 	}
-	
-	public Object Parsing() throws ParserException, FileNotFoundException {
+
+	public void lex(String regExp, TokenBuilder tb) {
+		tokenBuilders.put(regExp, tb);
+	}
+
+	public void lexEndToken(String regExp, TokenBuilder tb) {
+		tokenBuilders.put(regExp, tb);
+		endOfTok = regExp;
+	}
+
+	public void Lexing(Reader r) throws IOException, LexerException {
+		br = new BufferedReader(r);
+		lineArr = new ArrayList<>();
+
+		String read_string = br.readLine();
+
+		while (true) {
+			String next_string = br.readLine();
+
+			if (next_string != null) {
+				lineArr.add(read_string + "\n");
+				read_string = next_string;
+			}
+			else {
+				lineArr.add(read_string);
+				break;
+			}
+		}
+
+		lineno = 1;
+		TokenBuilder tb;
+
+		Object[] keys = tokenBuilders.keySet().toArray();
+		
+		for (int idx = 0; idx < lineArr.size(); idx++) {
+			String line = lineArr.get(idx);
+			String str = "";
+			int front_idx = 0;
+
+			while (front_idx < line.length()) {
+				int i;
+				
+				for (i = 0; i < keys.length; i++) {
+					String regExp = (String) keys[i];
+					Pattern p = Pattern.compile(regExp);
+					Matcher matcher = p.matcher(line).region(front_idx, line.length());
+					
+					if (matcher.lookingAt()) {
+						int startIdx = matcher.start();
+						int endIdx = matcher.end();
+						
+						str = line.substring(startIdx, endIdx);
+						matcher.region(endIdx, line.length());
+						
+						tb = tokenBuilders.get(regExp);
+						
+						if (tb.tokenBuilder(str) != null) {
+							lexer.add(new Terminal(str, tb.tokenBuilder(str), startIdx, lineno));
+						}
+						
+						str = "";
+						front_idx = endIdx;
+						break;
+					}
+				}
+				
+				if (i >= keys.length)
+					throw new LexerException("No Pattern Matching " + front_idx + ", " + line.substring(front_idx));
+				
+			}
+			lineno++;
+		}
+
+		tb = tokenBuilders.get(endOfTok);
+		Terminal epsilon = new Terminal(endOfTok, tb.tokenBuilder(endOfTok), -1, -1);
+		lexer.add(epsilon);
+	}
+
+	public Object Parsing(Reader r) throws ParserException, IOException, LexerException {
+		Lexing(r);
+
 		stack.clear();
 		stack.push(new ParseState("0"));
 		Object tree = null;
@@ -85,7 +186,7 @@ public class CommonParserUtil {
 			switch (order) {
 			case "Accept":
 				lexer.remove(0);
-				return (Expr) ((Nonterminal) stack.get(1)).getTree();
+				return ((Nonterminal) stack.get(1)).getTree();
 			case "Shift":
 				String state = data_arr.get(1);
 				stack.push(currentTerminal);
@@ -112,9 +213,9 @@ public class CommonParserUtil {
 				}
 
 				int last_stack_tree_index = stack.size() - 1;
-				
+
 				TreeBuilder tb = treeBuilders.get(grammar_rules.get(grammar_rule_num));
-				
+
 				if (tb != null) {
 					tree = tb.treeBuilder();
 				}
@@ -138,7 +239,7 @@ public class CommonParserUtil {
 		}
 		throw new ParserException("Empty Token in Lexer");
 	}
-	
+
 	private void readInitialize() throws IOException {
 		FileReader grammarFReader = new FileReader("grammar_rules.txt");
 		FileReader actionFReader = new FileReader("action_table.txt");
@@ -149,9 +250,13 @@ public class CommonParserUtil {
 		BufferedReader gotoBReader = new BufferedReader(gotoFReader);
 
 		String tmpLine;
+		
+		grammar_rules.clear();
+		action_table.clear();
+		goto_table.clear();
 
 		while ((tmpLine = grammarBReader.readLine()) != null) {
-			// grammerNumber: grammer
+			// grammarNumber: grammar
 			String[] arr = tmpLine.split(":");
 
 			int grammerNum = Integer.parseInt(arr[0].trim());
@@ -168,7 +273,6 @@ public class CommonParserUtil {
 			goto_table.add(tmpLine);
 		}
 	}
-	
 
 	private ParseState get_st(ParseState current_state, String index, ArrayList<Terminal> Tokens)
 			throws FileNotFoundException, ParserException {
@@ -202,7 +306,7 @@ public class CommonParserUtil {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(
-				"Expect Trans Table content is \"" + current_state.toString() + " " + index + " <Destination State>\"");
+				"Expect Goto Table content is \"" + current_state.toString() + " " + index + " <Destination State>\"");
 		sb.append("\n");
 		sb.append("but didn't found at Trans Table... Plz Check it");
 		sb.append("\n");
@@ -259,7 +363,7 @@ public class CommonParserUtil {
 
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("Expect Parsing table content is \"" + current_state.toString() + " " + terminal.toString()
+		sb.append("Expect Action Table content is \"" + current_state.toString() + " " + terminal.toString()
 				+ " <Shift/Reduce/Accecpt>\"");
 		sb.append("\n");
 

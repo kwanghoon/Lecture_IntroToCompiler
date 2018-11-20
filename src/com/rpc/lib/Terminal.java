@@ -1,8 +1,8 @@
-package com.rpc.parser;
+package com.rpc.lib;
 
 public class Terminal extends Stkelem {
 	private String syntax;
-	private Token token;
+	private Object token;
 	private int chIndex;
 	private int lineIndex;
 	
@@ -10,7 +10,7 @@ public class Terminal extends Stkelem {
 		
 	}
 
-	public Terminal(String syntax, Token token, int chIndex, int lineIndex) {
+	public Terminal(String syntax, Object token, int chIndex, int lineIndex) {
 		super();
 		this.syntax = syntax;
 		this.token = token;
@@ -26,11 +26,11 @@ public class Terminal extends Stkelem {
 		this.syntax = syntax;
 	}
 
-	public Token getToken() {
+	public Object getToken() {
 		return token;
 	}
 
-	public void setToken(Token token) {
+	public void setToken(Object token) {
 		this.token = token;
 	}
 	
