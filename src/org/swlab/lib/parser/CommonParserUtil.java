@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,7 +23,10 @@ public class CommonParserUtil {
 	private ArrayList<String> lineArr;
 	private ArrayList<Terminal> lexer;
 
-	private HashMap<String, TokenBuilder> tokenBuilders;
+	// Important: Use LinkedHashMap instead of HashMap
+	//            to maintain the order in which each lexical 
+	//            rule is added.
+	private LinkedHashMap<String, TokenBuilder> tokenBuilders;
 
 	// Parser part
 	private ArrayList<String> action_table;
@@ -46,7 +50,7 @@ public class CommonParserUtil {
 		grammar_rules = new HashMap<>();
 
 		treeBuilders = new HashMap<>();
-		tokenBuilders = new HashMap<>();
+		tokenBuilders = new LinkedHashMap<>();
 
 		readInitialize();
 	}
@@ -102,6 +106,10 @@ public class CommonParserUtil {
 	}
 
 	public void Lexing(Reader r) throws IOException, LexerException {
+		Lexing(r, false);
+	}
+	
+	public void Lexing(Reader r, boolean debug) throws IOException, LexerException {
 		br = new BufferedReader(r);
 		lineArr = new ArrayList<>();
 
@@ -124,6 +132,10 @@ public class CommonParserUtil {
 		TokenBuilder tb;
 
 		Object[] keys = tokenBuilders.keySet().toArray();
+		Pattern[] ps = new Pattern[keys.length];
+		
+		for(int i = 0; i< keys.length; i++)
+			ps[i] = Pattern.compile((String)keys[i]);
 		
 		for (int idx = 0; idx < lineArr.size(); idx++) {
 			String line = lineArr.get(idx);
@@ -135,7 +147,7 @@ public class CommonParserUtil {
 				
 				for (i = 0; i < keys.length; i++) {
 					String regExp = (String) keys[i];
-					Pattern p = Pattern.compile(regExp);
+					Pattern p = ps[i];
 					Matcher matcher = p.matcher(line).region(front_idx, line.length());
 					
 					if (matcher.lookingAt()) {
@@ -167,6 +179,10 @@ public class CommonParserUtil {
 		tb = tokenBuilders.get(endOfTok);
 		Terminal epsilon = new Terminal(endOfTok, tb.tokenBuilder(endOfTok), -1, -1);
 		lexer.add(epsilon);
+		
+		for(Terminal t : lexer) {
+			System.out.print(t + " ");
+		}
 	}
 
 	public Object Parsing(Reader r) throws ParserException, IOException, LexerException {
@@ -211,8 +227,6 @@ public class CommonParserUtil {
 					rhs = "";
 					rhsCount = 0;
 				}
-
-				int last_stack_tree_index = stack.size() - 1;
 
 				TreeBuilder tb = treeBuilders.get(grammar_rules.get(grammar_rule_num));
 
@@ -272,6 +286,10 @@ public class CommonParserUtil {
 		while ((tmpLine = gotoBReader.readLine()) != null) {
 			goto_table.add(tmpLine);
 		}
+		
+		grammarBReader.close();
+		actionBReader.close();
+		gotoBReader.close();
 	}
 
 	private ParseState get_st(ParseState current_state, String index, ArrayList<Terminal> Tokens)
@@ -348,7 +366,6 @@ public class CommonParserUtil {
 				index_Token = Token.findToken(data[index1]);
 
 				if (terminal.getToken() == index_Token) {
-					String return_string = new String();
 					for (int i = index1 + 1; i < data.length; i++) {
 						if (data[i].equals(""))
 							continue;
