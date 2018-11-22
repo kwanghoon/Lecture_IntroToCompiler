@@ -1,6 +1,6 @@
 # SWLAB Parser Builder
 
-##Contributor
-### Gayoung Kim
-### Kwanghoon Choi
+## Contributor
+- Gayoung Kim
+- Kwanghoon Choi
  
