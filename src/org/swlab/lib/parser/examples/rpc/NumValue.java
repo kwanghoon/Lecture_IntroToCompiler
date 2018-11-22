@@ -1,4 +1,4 @@
-package com.rpc.parser;
+package org.swlab.lib.parser.examples.rpc;
 
 public class NumValue extends Value {
 	private double value;

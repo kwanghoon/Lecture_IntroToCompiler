@@ -1,4 +1,4 @@
-package com.rpc.lib;
+package org.swlab.lib.parser;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -11,7 +11,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.rpc.parser.Token;
+import org.swlab.lib.parser.examples.rpc.Token;
 
 public class CommonParserUtil {
 	// Lexer part

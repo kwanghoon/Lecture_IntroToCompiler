@@ -1,11 +1,11 @@
-package com.rpc.parser;
+package org.swlab.lib.parser.examples.rpc;
 
 import java.io.IOException;
 import java.io.Reader;
 
-import com.rpc.lib.CommonParserUtil;
-import com.rpc.lib.LexerException;
-import com.rpc.lib.ParserException;
+import org.swlab.lib.parser.CommonParserUtil;
+import org.swlab.lib.parser.LexerException;
+import org.swlab.lib.parser.ParserException;
 
 public class Parser {
 	private CommonParserUtil pu;

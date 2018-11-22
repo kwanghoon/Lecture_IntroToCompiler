@@ -1,4 +1,4 @@
-package com.rpc.parser;
+package org.swlab.lib.parser.examples.rpc;
 
 public class AppExpr extends Expr {
 	private Expr fun;

@@ -1,4 +1,4 @@
-package com.rpc.lib;
+package org.swlab.lib.parser;
 
 public class Terminal extends Stkelem {
 	private String syntax;

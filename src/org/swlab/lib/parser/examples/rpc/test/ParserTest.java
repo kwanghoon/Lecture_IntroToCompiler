@@ -1,4 +1,4 @@
-package com.rpc.parser.test;
+package org.swlab.lib.parser.examples.rpc.test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -6,13 +6,12 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import org.junit.jupiter.api.Test;
-
-import com.rpc.lib.LexerException;
-import com.rpc.lib.ParserException;
-import com.rpc.parser.AppExpr;
-import com.rpc.parser.Expr;
-import com.rpc.parser.LamExpr;
-import com.rpc.parser.Parser;
+import org.swlab.lib.parser.LexerException;
+import org.swlab.lib.parser.ParserException;
+import org.swlab.lib.parser.examples.rpc.AppExpr;
+import org.swlab.lib.parser.examples.rpc.Expr;
+import org.swlab.lib.parser.examples.rpc.LamExpr;
+import org.swlab.lib.parser.examples.rpc.Parser;
 
 class ParserTest {
 

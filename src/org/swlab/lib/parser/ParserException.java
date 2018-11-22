@@ -1,4 +1,4 @@
-package com.rpc.lib;
+package org.swlab.lib.parser;
 
 public class ParserException extends Exception {
 	private String message;

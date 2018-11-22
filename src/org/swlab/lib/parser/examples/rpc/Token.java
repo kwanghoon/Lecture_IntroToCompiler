@@ -1,6 +1,6 @@
-package com.rpc.parser;
+package org.swlab.lib.parser.examples.rpc;
 
-import com.rpc.lib.ParserException;
+import org.swlab.lib.parser.ParserException;
 
 public enum Token {
 	END_OF_TOKEN("$"),
