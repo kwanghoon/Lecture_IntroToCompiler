@@ -8,5 +8,5 @@ public class SendTransaction extends Stmt {
 	public String contractName;
 	public String functionName;
 	public ArrayList<Expr> argExprs;
-	public HashMap<String,String> properties;	// Property -> identifier 
+	public HashMap<String,Expr> properties;	// Property -> identifier 
 }

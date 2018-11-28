@@ -64,6 +64,8 @@ public class Parser {
 		pu.lex("byte(s(1[0-9]?|2[0-9]?|3(0|1|2)?|[4-9])?)?", 
 				text -> { return Token.BYTE; });
 		
+		pu.lex("string", text -> { return Token.STRING; });
+		
 		// DECIMAL_NUMBER must be after HEX_NUMBER, INT, UINT
 		pu.lex("[+-]?[0-9]+", text -> { return Token.DECIMAL_NUMBER; });
 		
