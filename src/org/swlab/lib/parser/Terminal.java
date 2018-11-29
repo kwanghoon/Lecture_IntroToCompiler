@@ -1,8 +1,8 @@
 package org.swlab.lib.parser;
 
-public class Terminal extends Stkelem {
+public class Terminal<Token> extends Stkelem {
 	private String syntax;
-	private Object token;
+	private Token token;
 	private int chIndex;
 	private int lineIndex;
 	
@@ -10,7 +10,7 @@ public class Terminal extends Stkelem {
 		
 	}
 
-	public Terminal(String syntax, Object token, int chIndex, int lineIndex) {
+	public Terminal(String syntax, Token token, int chIndex, int lineIndex) {
 		super();
 		this.syntax = syntax;
 		this.token = token;
@@ -26,11 +26,11 @@ public class Terminal extends Stkelem {
 		this.syntax = syntax;
 	}
 
-	public Object getToken() {
+	public Token getToken() {
 		return token;
 	}
 
-	public void setToken(Object token) {
+	public void setToken(Token token) {
 		this.token = token;
 	}
 	
