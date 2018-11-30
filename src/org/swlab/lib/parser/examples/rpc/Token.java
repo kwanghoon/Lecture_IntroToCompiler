@@ -1,8 +1,9 @@
 package org.swlab.lib.parser.examples.rpc;
 
 import org.swlab.lib.parser.ParserException;
+import org.swlab.lib.parser.TokenInterface;
 
-public enum Token {
+public enum Token implements TokenInterface<Token> {
 	END_OF_TOKEN("$"),
 	OPENPAREN("("), CLOSEPAREN(")"),
 	DOT("."), LOC("loc"),
@@ -23,5 +24,13 @@ public enum Token {
 				return t;
 		}
 		throw new ParserException(strToken + " not expected.");
+	}
+	@Override
+	public Token toToken(String s) throws ParserException {
+		return findToken(s);
+	}
+	@Override
+	public String toString(Token tok) {
+		return tok.getStrToken();
 	}
 }

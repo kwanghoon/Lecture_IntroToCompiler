@@ -1,1 +1,10 @@
-uint x;
+
+account{balance:10ether} owner;
+account{balance:50ether} user1;
+
+account{contract:"simple_storage.sol", by:owner} simplestorage;
+
+simplestorage.set(123) {by:user1};
+
+assert simplestorage.storedData == 123;
+

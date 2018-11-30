@@ -8,17 +8,18 @@ import org.swlab.lib.parser.LexerException;
 import org.swlab.lib.parser.ParserException;
 
 public class Parser {
-	private CommonParserUtil pu;
+	private CommonParserUtil<Token> pu;
 
 	public Parser() throws IOException, LexerException {
-		pu = new CommonParserUtil();
+		pu = new CommonParserUtil<Token>();
 		
 		pu.lex("[ \t\n]", text -> { return null; });
 		pu.lex("[0-9]+", text -> { return Token.NUM; });
+		pu.lex("lam",  text -> {return Token.LAM; } );
 		pu.lex("[a-zA-Z]+[0-9]*", text -> {
-			if (text.equalsIgnoreCase("lam"))
-					return Token.LAM;
-			else
+//			if (text.equalsIgnoreCase("lam"))
+//					return Token.LAM;
+//			else
 					return Token.ID; });
 		pu.lex("\\^[cs]", text -> { return Token.LOC; });
 		pu.lex("\\(", text -> { return Token.OPENPAREN; });
@@ -26,6 +27,7 @@ public class Parser {
 		pu.lex("\\.", text -> { return Token.DOT; });
 		pu.lexEndToken("$", text -> { return Token.END_OF_TOKEN; });
 		
+		pu.ruleStartSymbol("L'");
 		pu.rule("L' -> L", () -> { return pu.get(1); });
 		pu.rule("L -> E", () -> { return pu.get(1); });
 		pu.rule("L -> lam loc id . L", () -> { return new LamExpr(getLoc(pu.getText(2)), pu.getText(3), (Expr) pu.get(5)); });

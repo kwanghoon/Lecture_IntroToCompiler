@@ -191,7 +191,10 @@ public class Parser {
 		return pu.Parsing(r);
 	}
 	
-	public void Lexing(Reader r) throws IOException, LexerException{
-		pu.Lexing(r);
+	public void Lexing(Reader r) throws IOException, LexerException {
+		Lexing(r, false);
+	}
+	public void Lexing(Reader r, boolean b) throws IOException, LexerException{
+		pu.Lexing(r, b);
 	}
 }

@@ -1,9 +1,14 @@
 package org.swlab.lib.parser.examples.etherscript;
 
 import org.swlab.lib.parser.ParserException;
+import org.swlab.lib.parser.TokenInterface;
 
-public enum Token {
+public enum Token implements TokenInterface<Token> {
 	END_OF_TOKEN("$"),
+	
+	// new token for the ether script language
+	ACCOUNT("account"), ASSERT("assert"), BALANCE("balance"),
+	BY("by"), VALUE("value"),
 	
 	ADDRESS("address"), ANONYMOUS("anonymous"), AS("as"), ASSEMBLY("assembly"),
 	BOOL("bool"), BREAK("break"), BYTE("byte"), CONSTANT("constant"),
@@ -20,7 +25,7 @@ public enum Token {
 	PUBLIC("public"), PURE("pure"), RETURN("return"), RETURNS("returns"), 
 	SECONDS("seconds"), STORAGE("storage"), STRING("string"), 
 	STRING_LITERAL("string_literal"), STRUCT("struct"), SZABO("szabo"), 
-	THROW("throw"), UFIXED("ufixed"), UINT("uint"), USING("using"), VAR("var"),
+	THROW("throw"), TRUE("true"), UFIXED("ufixed"), UINT("uint"), USING("using"), VAR("var"),
 	VIEW("view"), WEEKS("weeks"), WEI("wei"), WHILE("while"), YEARS("years"),
 	
 	BANG("!"), BANGEQ("!="), PERCENT("%"), PERCENTEQ("%="), LOGICALAND("&&"),
@@ -50,5 +55,13 @@ public enum Token {
 				return t;
 		}
 		throw new ParserException(strToken + " not expected.");
+	}
+	@Override
+	public Token toToken(String s) throws ParserException {
+		return findToken(s);
+	}
+	@Override
+	public String toString(Token tok) {
+		return tok.getStrToken();
 	}
 }

@@ -8,10 +8,12 @@ import java.io.StringReader;
 import org.junit.jupiter.api.Test;
 import org.swlab.lib.parser.LexerException;
 import org.swlab.lib.parser.ParserException;
-import org.swlab.lib.parser.examples.solidity.Parser;
+import org.swlab.lib.parser.examples.etherscript.Parser;
 
 class LexerTest {
 
+	static final String tokensEtherscript = "account assert";
+	
 	static final String tokensAlpha = "address anonymous as assembly bool break byte constant"
 			+ "continue contract days delete do else enum ether event external false"
 			+ "finney fixed for from function hours if import indexed int interface"
@@ -43,14 +45,18 @@ class LexerTest {
 	static final String tokensPragma =
 			"pragma solidity ^0.4.25;";
 	
+	static final String testStmt1 = "unit x;";
+	
 	@Test
 	void lexical_analsis_test1() throws IOException, LexerException, ParserException {
 		StringReader sr = new StringReader(
+				tokensEtherscript +
 			tokensAlpha + tokensSymbol + tokensDecimal + tokensIdentifier
-			+ tokensString + tokensHex + tokensIntUintByte + tokensPragma);
+			+ tokensString + tokensHex + tokensIntUintByte + tokensPragma 
+			+ testStmt1);
 		Parser parser = new Parser();
 		
-		parser.Lexing(sr);
+		parser.Lexing(sr, true);
 		
 		assertTrue(true);
 	}

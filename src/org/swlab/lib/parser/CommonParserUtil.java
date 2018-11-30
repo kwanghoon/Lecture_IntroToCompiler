@@ -4,9 +4,10 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -29,11 +30,13 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	private LinkedHashMap<String, TokenBuilder<Token>> tokenBuilders;
 
 	// Parser part
+	private String startSymbol;
+	
 	private ArrayList<String> action_table;
 	private ArrayList<String> goto_table;
-	private HashMap<Integer, String> grammar_rules;
+	private LinkedHashMap<Integer, String> grammar_rules;
 
-	private HashMap<String, TreeBuilder> treeBuilders;
+	private LinkedHashMap<String, TreeBuilder> treeBuilders;
 
 	private Stack<Stkelem> stack;
 
@@ -47,12 +50,10 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 		action_table = new ArrayList<>();
 		goto_table = new ArrayList<>();
-		grammar_rules = new HashMap<>();
+		grammar_rules = new LinkedHashMap<>();
 
-		treeBuilders = new HashMap<>();
+		treeBuilders = new LinkedHashMap<>();
 		tokenBuilders = new LinkedHashMap<>();
-
-		readInitialize();
 	}
 	/*
 	 * public CommonParserUtil(ArrayList<Terminal> lexer) throws IOException {
@@ -92,8 +93,12 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 		return nt.getSyntax();
 	}
 
+	public void ruleStartSymbol(String startSymbol) {
+		this.startSymbol = startSymbol;
+	}
+	
 	public void rule(String productionRule, TreeBuilder tb) {
-		treeBuilders.put(productionRule, tb);
+		treeBuilders.put(productionRule.trim(), tb);
 	}
 
 	public void lex(String regExp, TokenBuilder<Token> tb) {
@@ -158,7 +163,6 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 						matcher.region(endIdx, line.length());
 						
 						tb = tokenBuilders.get(regExp);
-						
 						if (tb.tokenBuilder(str) != null) {
 							lexer.add(new Terminal<Token>(str, tb.tokenBuilder(str), startIdx, lineno));
 						}
@@ -180,13 +184,21 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 		Terminal<Token> epsilon = new Terminal<Token>(endOfTok, tb.tokenBuilder(endOfTok), -1, -1);
 		lexer.add(epsilon);
 		
-		for(Terminal<Token> t : lexer) {
-			System.out.print(t + " ");
+		if (debug) {
+			for(Terminal<Token> t : lexer) {
+				System.out.print(t.getToken() + "[" + t + "] ");
+			}
 		}
 	}
 
-	public Object Parsing(Reader r) throws ParserException, IOException, LexerException {
-		Lexing(r);
+	public Object Parsing (Reader r) throws ParserException, IOException, LexerException {
+		return Parsing(r, false);
+	}
+	
+	public Object Parsing(Reader r, boolean debug) throws ParserException, IOException, LexerException {
+		readInitialize();
+
+		Lexing(r, debug);
 
 		stack.clear();
 		stack.push(new ParseState("0"));
@@ -195,6 +207,19 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 		while (!lexer.isEmpty()) {
 			ParseState currentState = (ParseState) stack.lastElement();
 			Terminal<Token> currentTerminal = lexer.get(0);
+			
+			if (debug) {
+				System.out.println("Line " + currentTerminal.getLineIndex() 
+						+ ", " + currentTerminal.getChIndex() 
+						+ " : " + currentTerminal.getSyntax());
+				for(int i = 0; i < stack.size(); i++) {
+					Stkelem e = stack.get(i);
+					if (e == null) System.out.print("null");
+					else System.out.print(e);
+					if (i < stack.size()-1) System.out.print(" :: ");
+				}
+				System.out.println();
+			}
 
 			ArrayList<String> data_arr = Check_state(currentState, currentTerminal, lexer);
 			String order = data_arr.get(0); // Accept | Reduce | Shift
@@ -213,12 +238,13 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 				int grammar_rule_num = Integer.parseInt(data_arr.get(1));
 				productionRuleIdx = grammar_rule_num;
 
-				String[] reduce_arr = grammar_rules.get(grammar_rule_num).split("->");
+				String grammar_rule = grammar_rules.get(grammar_rule_num);
+				String[] reduce_arr = grammar_rule.split("->", 2);
 				String lhs = reduce_arr[0].trim();
 				String rhs;
 				int rhsCount;
 
-				if (!(reduce_arr.length == 1)) // -> "empty"
+				if (1 < reduce_arr.length && reduce_arr[1].length() > 0) // -> "empty"
 				{
 					rhs = reduce_arr[1].trim();
 					rhsCount = rhs.split(" ").length; // *2 => pop count.
@@ -227,14 +253,17 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 					rhs = "";
 					rhsCount = 0;
 				}
-
+				
 				TreeBuilder tb = treeBuilders.get(grammar_rules.get(grammar_rule_num));
 
 				if (tb != null) {
 					tree = tb.treeBuilder();
 				}
 				else {
-					throw new ParserException("Unexpected grammar rule " + grammar_rule_num);
+					throw new ParserException("Unexpected grammar rule " + grammar_rule_num 
+							+ "\n"
+							+ "In reduce " + grammar_rule 
+							+ " at " + currentState + " " + currentTerminal);
 				}
 
 				// pop stack
@@ -247,6 +276,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 				currentState = (ParseState) stack.lastElement();
 
 				stack.push(new Nonterminal(tree));
+				
 				stack.push(get_st(currentState, lhs, lexer));
 				break;
 			}
@@ -255,41 +285,145 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	}
 
 	private void readInitialize() throws IOException {
-		FileReader grammarFReader = new FileReader("grammar_rules.txt");
-		FileReader actionFReader = new FileReader("action_table.txt");
-		FileReader gotoFReader = new FileReader("goto_table.txt");
+		try {
+			FileReader grammarFReader = new FileReader("grammar_rules.txt");
+			FileReader actionFReader = new FileReader("action_table.txt");
+			FileReader gotoFReader = new FileReader("goto_table.txt");
+	
+			BufferedReader grammarBReader = new BufferedReader(grammarFReader);
+			BufferedReader actionBReader = new BufferedReader(actionFReader);
+			BufferedReader gotoBReader = new BufferedReader(gotoFReader);
+	
+			String tmpLine;
+			
+			grammar_rules.clear();
+			action_table.clear();
+			goto_table.clear();
+	
+			while ((tmpLine = grammarBReader.readLine()) != null) {
+				// grammarNumber: grammar
+				String[] arr = tmpLine.split(":", 2); // : can appear in a production rule.
+	
+				int grammerNum = Integer.parseInt(arr[0].trim());
+				String grammer = arr[1].trim();
+	
+				grammar_rules.put(grammerNum, grammer);
+			}
+	
+			while ((tmpLine = actionBReader.readLine()) != null) {
+				action_table.add(tmpLine);
+			}
+	
+			while ((tmpLine = gotoBReader.readLine()) != null) {
+				goto_table.add(tmpLine);
+			}
+			
+			grammarBReader.close();
+			actionBReader.close();
+			gotoBReader.close();
+		} catch (FileNotFoundException e) {
+			createGrammarRules();
+		}
+	}
+	
+	private void createGrammarRules() throws IOException {
+		// CFG "L'" [
+		// 		ProductionRule "L'" [Nonterminal "L"],
+		// 		ProductionRule "L" [Nonterminal "E"],
+		// 		ProductionRule "L" [Terminal "lam", Terminal "loc", Terminal "id", Terminal ".", Nonterminal "L"],
+		// 		ProductionRule "E" [Nonterminal "E", Nonterminal "T"],
+		// 		ProductionRule "E" [Nonterminal "T"],
+		// 		ProductionRule "T" [Terminal "id"],
+		// 		ProductionRule "T" [Terminal "num"],
+		// 		ProductionRule "T" [Terminal "(", Nonterminal "L", Terminal ")"]
+		// ]
+		Object[] objGrammar = treeBuilders.keySet().toArray();
 
-		BufferedReader grammarBReader = new BufferedReader(grammarFReader);
-		BufferedReader actionBReader = new BufferedReader(actionFReader);
-		BufferedReader gotoBReader = new BufferedReader(gotoFReader);
+		// HashMap�뜝�룞�삕 �뜝�떕�벝�삕 Key�뜝�룞�삕 �뜝�룞�삕�뜝�떇�눦�삕 �뜝�룞�삕�뜝�룜�뵆�뜝�룞�삕�뜝�룞�삕
+		ArrayList<String> nonterminals = new ArrayList<>();
 
-		String tmpLine;
+		// nonterminal setting
+		for (int i = 0; i < objGrammar.length; i++) {
+			String grammar = (String) objGrammar[i];
+			String[] data = grammar.split("->", 2); // symbol -> g1 g2 g3 ...
+
+			if (!nonterminals.contains(data[0].trim())) {
+				nonterminals.add(data[0].trim());
+			}
+		}
+
+		assert startSymbol != null;
 		
-		grammar_rules.clear();
-		action_table.clear();
-		goto_table.clear();
+		String fileContent = "CFG \"" + startSymbol + "\" [\n";
 
-		while ((tmpLine = grammarBReader.readLine()) != null) {
-			// grammarNumber: grammar
-			String[] arr = tmpLine.split(":");
+		for (int i = 0; i < objGrammar.length; i++) {
+			String grammar = (String) objGrammar[i];
+			String[] data = grammar.split("->", 2);
 
-			int grammerNum = Integer.parseInt(arr[0].trim());
-			String grammer = arr[1].trim();
+			fileContent += "\tProductionRule \"" + data[0].trim() + "\" [";
 
-			grammar_rules.put(grammerNum, grammer);
+			// data[0] �뜝�룞�삕 ProductionRule �뜝�듅源띿삕 �뜝�룞�삕�뜝�떛源띿삕
+			// data[1] �뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�뜝�룞�삕�뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕 Nonterminal Terminal �뜝�떎�뙋�삕 �뜝�떗�슱�삕
+			if (data.length > 1 && data[1].trim().length() > 0) {
+				String[] tok = data[1].trim().split("[ \t\n]");
+	
+				for (int j = 0; j < tok.length; j++) {
+					if (nonterminals.contains(tok[j])) { // �뜝�룞�삕�뜝�룞�삕 token�뜝�룞�삕 Nonterminal�뜝�룞�삕 �뜝�룞�삕�뜝占�
+						fileContent += "Nonterminal \"";
+					}
+					else {
+						fileContent += "Terminal \"";
+					}
+	
+					fileContent += tok[j] + "\"";
+	
+					if (j < tok.length - 1) {
+						fileContent += ", ";
+					}
+				}
+			}
+
+			fileContent += "]";
+			if (i < objGrammar.length - 1) {
+				fileContent += ",\n";
+			}
+			else
+				fileContent += "\n";
+
 		}
 
-		while ((tmpLine = actionBReader.readLine()) != null) {
-			action_table.add(tmpLine);
-		}
+		fileContent += "]";
 
-		while ((tmpLine = gotoBReader.readLine()) != null) {
-			goto_table.add(tmpLine);
+		String directory = System.getProperty("user.dir");
+		String grammarPath = directory + "\\mygrammar.grm";
+		
+		// file �뜝�룞�삕�뜝占�
+		try {
+			PrintWriter writer = new PrintWriter(grammarPath);
+			writer.println(fileContent);
+			writer.close();
+		}
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
 		}
 		
-		grammarBReader.close();
-		actionBReader.close();
-		gotoBReader.close();
+		String grammarRulesPath = directory + "/grammar_rules.txt";
+		String actionTablePath = directory + "/action_table.txt";
+		String gotoTablePath = directory + "/goto_table.txt";
+		
+		ProcessBuilder pb = new ProcessBuilder("cmd", "/c", directory + "/genlrparser-exe.exe",
+								"\"" + grammarPath + "\" -output \"" + grammarRulesPath + "\" \"" + actionTablePath + "\" \"" + gotoTablePath + "\"");
+		try {
+			Process p = pb.start();
+			
+			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			
+			if (reader.readLine().equals("Done"))
+				readInitialize();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private ParseState get_st(ParseState current_state, String index, ArrayList<Terminal<Token>> Tokens)
@@ -322,12 +456,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 			location = 0;
 		}
 		StringBuilder sb = new StringBuilder();
-
-		sb.append(
-				"Expect Goto Table content is \"" + current_state.toString() + " " + index + " <Destination State>\"");
-		sb.append("\n");
-		sb.append("but didn't found at Trans Table... Plz Check it");
-		sb.append("\n");
+		sb.append(	"Not found in Goto Table: " + current_state + " " + index + "\n");
 
 		// For locating the parsing error.
 		int err_ch_index = -1;
@@ -381,14 +510,14 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("Expect Action Table content is \"" + current_state.toString() + " " + terminal.toString()
-				+ " <Shift/Reduce/Accecpt>\"");
+		sb.append("Unexpected terminal " + terminal.toString()
+				+ " at " + current_state.toString() + " in the action table.");
 		sb.append("\n");
-
-		sb.append("but didn't found at Parsing Table... Plz Check it");
-		sb.append("\n");
-		sb.append("[" + terminal.getLineIndex() + "," + terminal.getChIndex() + "]");
-		sb.append("\n");
+//
+//		sb.append("but didn't found at Action Table... Plz Check it");
+//		sb.append("\n");
+//		sb.append("[" + terminal.getLineIndex() + "," + terminal.getChIndex() + "]");
+//		sb.append("\n");
 
 		// For locating the parsing error.
 		int err_ch_index = -1;

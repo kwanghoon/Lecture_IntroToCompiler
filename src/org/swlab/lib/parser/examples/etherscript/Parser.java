@@ -20,21 +20,24 @@ import org.swlab.lib.parser.examples.etherscript.ast.Stmt;
 import org.swlab.lib.parser.examples.etherscript.ast.Type;
 import org.swlab.lib.parser.examples.etherscript.ast.Var;
 import org.swlab.lib.parser.examples.etherscript.ast.VarDecl;
-import org.swlab.lib.parser.examples.rpc.Identifier;
 
 public class Parser {
-	private CommonParserUtil pu;
+	private CommonParserUtil<Token> pu;
 	
 	public Parser() throws IOException, LexerException {
-		pu = new CommonParserUtil();
+		pu = new CommonParserUtil<Token>();
 		Lexer.LexicalAnalysis(pu);
 		SyntacticAnalysis(pu);
 	}
 	
-	public void SyntacticAnalysis(CommonParserUtil pu) {
+	public void SyntacticAnalysis(CommonParserUtil<Token> pu) {
+		pu.ruleStartSymbol("Program'");
+
 		pu.rule("Program' -> Program", () -> {return pu.get(1);});
 		pu.rule("Program -> Statement", () -> { 
-			return new ArrayList<Stmt>().add((Stmt)pu.get(1)); 
+			ArrayList<Stmt> arrList = new ArrayList<Stmt>();
+			arrList.add((Stmt)pu.get(1));
+			return arrList; 
 		});
 		pu.rule("Program -> Statement Program", () -> {
 			ArrayList<Stmt> arrList = (ArrayList<Stmt>)pu.get(2);
@@ -44,34 +47,34 @@ public class Parser {
 		pu.rule("Statement -> account { Properties } identifier OptArgExprs ;", () -> {
 			Account acc = new Account();
 			acc.properties = (HashMap<String,Expr>)pu.get(3);
-			acc.name = (String)pu.get(5);
+			acc.name = (String)pu.getText(5);
 			acc.argExprs = (ArrayList<Expr>)pu.get(6);
 			return acc;
 		});
-		pu.rule("Statement -> identifier . OptIdentifier ( Exprs ) { Properties } ", () -> {
+		pu.rule("Statement -> identifier . OptIdentifier ( Exprs ) { Properties } ;", () -> {
 			SendTransaction sendTr = new SendTransaction();
 			sendTr.retVar = null;
-			sendTr.contractName = (String)pu.get(1);
+			sendTr.contractName = (String)pu.getText(1);
 			String functionName = (String)pu.get(3);
 			sendTr.functionName = functionName == null ? "" : functionName;
 			sendTr.argExprs = (ArrayList<Expr>)pu.get(5);
 			sendTr.properties = (HashMap<String,Expr>)pu.get(8);
 			return sendTr;
 		});
-		pu.rule("Statement -> identifier = identifier . OptIdentifier ( Exprs ) { Properties } ", () -> {
+		pu.rule("Statement -> identifier = identifier . OptIdentifier ( Exprs ) { Properties } ;", () -> {
 			SendTransaction sendTr = new SendTransaction();
-			sendTr.retVar = (String)pu.get(1);
+			sendTr.retVar = (String)pu.getText(1);
 			sendTr.contractName = (String)pu.get(1+2);
-			String functionName = (String)pu.get(3+2);
+			String functionName = (String)pu.getText(3+2);
 			sendTr.functionName = functionName == null ? "" : functionName;
 			sendTr.argExprs = (ArrayList<Expr>)pu.get(5+2);
 			sendTr.properties = (HashMap<String,Expr>)pu.get(8+2);
 			return sendTr;
 		});
-		pu.rule("Statement -> Type identifier ", () -> {
+		pu.rule("Statement -> Type identifier ;", () -> {
 			VarDecl varDecl = new VarDecl();
 			varDecl.type = (Type)pu.get(1);
-			varDecl.name = (String)pu.get(2);
+			varDecl.name = (String)pu.getText(2);
 			return varDecl;
 		});
 		pu.rule("Statement -> assert Expr ;", () -> {
@@ -80,7 +83,7 @@ public class Parser {
 			return assertStmt;
 		});
 		pu.rule("OptIdentifier -> identifier", () -> {
-			return pu.get(1);
+			return pu.getText(1);
 		});
 		pu.rule("OptIdentifier -> ", () -> {
 			return null;
@@ -91,9 +94,9 @@ public class Parser {
 			properties.put(prop.name, prop.expr);
 			return properties;
 		});
-		pu.rule("Properties -> Property Properties", () -> {
+		pu.rule("Properties -> Property , Properties", () -> {
 			Property prop = (Property)pu.get(1);
-			HashMap<String,Expr> properties = (HashMap<String,Expr>)pu.get(2);
+			HashMap<String,Expr> properties = (HashMap<String,Expr>)pu.get(3);
 			properties.put(prop.name, prop.expr);
 			return properties;
 		});
@@ -105,19 +108,19 @@ public class Parser {
 		});
 		pu.rule("Property -> by : Expr", () -> {
 			Property prop = new Property();
-			prop.name = Property.balance;
+			prop.name = Property.by;
 			prop.expr = (Expr)pu.get(3);
 			return prop;
 		});
 		pu.rule("Property -> contract : Expr", () -> {
 			Property prop = new Property();
-			prop.name = Property.balance;
+			prop.name = Property.contract;
 			prop.expr = (Expr)pu.get(3);
 			return prop;
 		});
 		pu.rule("Property -> value : Expr", () -> {
 			Property prop = new Property();
-			prop.name = Property.balance;
+			prop.name = Property.value;
 			prop.expr = (Expr)pu.get(3);
 			return prop;
 		});
@@ -165,11 +168,14 @@ public class Parser {
 			exprs.add(0, expr);
 			return exprs;
 		});
-		pu.rule("ExprAssign -> identifer = ExprAssign", () -> {
+		pu.rule("Expr -> ExprAssign", () -> {
+			return pu.get(1);
+		});
+		pu.rule("ExprAssign -> identifier = ExprAssign", () -> {
 			PrimOp primOp = new PrimOp();
 			primOp.kind = PrimOp.ASSIGN;
 			Var id = new Var();
-			id.name = (String)pu.get(1);
+			id.name = (String)pu.getText(1);
 			primOp.op1 = id;
 			primOp.op2 = (Expr)pu.get(3);
 			return primOp;
@@ -187,13 +193,15 @@ public class Parser {
 		pu.rule("ExprLogicalOr -> ExprLogicalAnd", () -> {
 			return pu.get(1);
 		});	
-		pu.rule("ExprLogicalAnd -> ExprLogicalAnd &&= ExprEqual", () -> {
+		pu.rule("ExprLogicalAnd -> ExprLogicalAnd && ExprEqual", () -> {
 			PrimOp primOp = new PrimOp();
 			primOp.kind = PrimOp.LOGICALAND;
 			primOp.op1 = (Expr)pu.get(1);
 			primOp.op2 = (Expr)pu.get(3);
 			return primOp;
 		});
+		pu.rule("ExprLogicalAnd -> ExprEqual", () -> { return pu.get(1); });
+		
 		pu.rule("ExprEqual -> ExprEqual == ExprInequal", () -> {
 			PrimOp primOp = new PrimOp();
 			primOp.kind = PrimOp.EQ;
@@ -300,22 +308,21 @@ public class Parser {
 		pu.rule("PostfixExpression -> PostfixExpression . identifier", () -> {
 			FieldAccess fieldAccess = new FieldAccess();
 			fieldAccess.obj = (Expr)pu.get(1);
-			fieldAccess.field = (String)pu.get(3);
+			fieldAccess.field = (String)pu.getText(3);
 			return fieldAccess;
 		});
-		pu.rule("PostfixExpression -> ExprPrime", () -> {
+		pu.rule("PostfixExpression -> ExprPrim", () -> {
 			return pu.get(1);
 		});
 		pu.rule("ExprPrim -> identifier", () -> {
-			return pu.getText(1);
+			Var var = new Var();
+			var.name = pu.getText(1);
+			return var;
 		});
 		pu.rule("ExprPrim -> number_literal", () -> {
-			Literal lit = new Literal();
-			lit.kind = Literal.NUMBER;
-			lit.literal = pu.getText(1);
-			return lit;
+			return pu.get(1);
 		});
-		pu.rule("ExprPrim -> bool_literal", () -> {
+		pu.rule("ExprPrim -> boolean_literal", () -> {
 			Literal lit = new Literal();
 			lit.kind = Literal.BOOLEAN;
 			lit.literal = pu.getText(1);
@@ -327,16 +334,88 @@ public class Parser {
 			lit.literal = pu.getText(1);
 			return lit;			
 		});
+		pu.rule("number_literal -> hex_number", () -> {
+			Literal lit = new Literal();
+			lit.kind = Literal.HEX_NUMBER;
+			lit.literal = pu.getText(1);
+			return lit;
+		});
+		
+		pu.rule("number_literal -> hex_number number_unit", () -> {
+			Literal lit = new Literal();
+			lit.kind = Literal.HEX_NUMBER;
+			lit.literal = pu.getText(1);
+			lit.unit = (String)pu.get(2);
+			return lit;
+		});
+		
+		pu.rule("number_literal -> decimal_number", () -> {
+			Literal lit = new Literal();
+			lit.kind = Literal.DECIMAL_NUMBER;
+			lit.literal = pu.getText(1);
+			return lit;
+		});
+		
+		pu.rule("number_literal -> decimal_number number_unit", () -> {
+			Literal lit = new Literal();
+			lit.kind = Literal.DECIMAL_NUMBER;
+			lit.literal = pu.getText(1);
+			lit.unit = (String)pu.get(2);			
+			return lit;			
+		});
+		
+		pu.rule("number_unit -> wei", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> szabo", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> finney", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> ether", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> seconds", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> minutes", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> hours", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> days", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> weeks", () -> { return pu.getText(1); });
+		
+		pu.rule("number_unit -> years", () -> { return pu.getText(1); });
+		
+		pu.rule("boolean_literal -> true", () -> {
+			Literal lit = new Literal();
+			lit.kind = Literal.BOOLEAN;
+			lit.literal = pu.getText(1);
+			return lit;
+		});
+		
+		pu.rule("boolean_literal -> false", () -> {
+			Literal lit = new Literal();
+			lit.kind = Literal.BOOLEAN;
+			lit.literal = pu.getText(1);
+			return lit;
+		});
+		
 		pu.rule("ExprPrim -> ( Expr )", () -> {
 			return pu.get(2);
 		});		
 	}
 	
 	public Object Parsing(Reader r) throws ParserException, IOException, LexerException {
-		return pu.Parsing(r);
+		return Parsing(r, false);
+	}
+	
+	public Object Parsing(Reader r, boolean flag) throws ParserException, IOException, LexerException {
+		return pu.Parsing(r, flag);
 	}
 	
 	public void Lexing(Reader r) throws IOException, LexerException{
-		pu.Lexing(r);
+		Lexing(r, false);
+	}
+	
+	public void Lexing(Reader r, boolean flag) throws IOException, LexerException{
+		pu.Lexing(r, flag);
 	}
 }

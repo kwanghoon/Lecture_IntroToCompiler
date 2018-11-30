@@ -15,4 +15,10 @@ public class Nonterminal extends Stkelem {
 	public void setTree(Object tree) {
 		this.tree = tree;
 	}
+	
+	@Override
+	public String toString() {
+		if (tree == null) return "null";
+		else return tree.getClass().getSimpleName();
+	}
 }

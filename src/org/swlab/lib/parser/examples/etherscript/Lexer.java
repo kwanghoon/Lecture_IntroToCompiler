@@ -1,13 +1,21 @@
 package org.swlab.lib.parser.examples.etherscript;
 
 import org.swlab.lib.parser.CommonParserUtil;
-import org.swlab.lib.parser.examples.solidity.Token;
+import org.swlab.lib.parser.examples.etherscript.Token;
 
 public class Lexer {
-	public static void LexicalAnalysis(CommonParserUtil pu) {
+	public static void LexicalAnalysis(CommonParserUtil<Token> pu) {
 		pu.lex("[ \t\n]", text -> { return null; });
 		pu.lexEndToken("$", text -> { return Token.END_OF_TOKEN; });
 		
+		// New token for the ether script language
+		pu.lex("account", text -> { return Token.ACCOUNT; }); 
+		pu.lex("assert", text -> { return Token.ASSERT; });
+		pu.lex("balance", text -> { return Token.BALANCE; });
+		pu.lex("by", text -> { return Token.BY; });
+		pu.lex("value", text -> { return Token.VALUE; });
+		
+		// Tokens for Solidity
 		pu.lex("address", text -> { return Token.ADDRESS; });
 		pu.lex("anonymous", text -> { return Token.ANONYMOUS; });
 		pu.lex("as(?!sembly)", text -> { return Token.AS; });
@@ -74,7 +82,7 @@ public class Lexer {
 		pu.lex("new", text -> { return Token.NEW; });
 		pu.lex("payable", text -> { return Token.PAYABLE; });
 		pu.lex("pragma", text -> { return Token.PRAGMA; });
-		pu.lex("([^;]+)\\;", text -> { return Token.PRAGMA_DIRECTIVE; });
+		//pu.lex("([^;]+)\\;", text -> { return Token.PRAGMA_DIRECTIVE; });
 		pu.lex("private", text -> { return Token.PRIVATE; });
 		pu.lex("public", text -> { return Token.PUBLIC; });
 		pu.lex("pure", text -> { return Token.PURE; });
