@@ -9,43 +9,43 @@ import org.swlab.lib.parser.ParserException;
 import org.swlab.lib.parser.examples.solidity.Token;
 
 public class Parser {
-	private CommonParserUtil pu;
+	private CommonParserUtil<Token> pu;
 	
 	public Parser() throws IOException, LexerException {
-		pu = new CommonParserUtil();
+		pu = new CommonParserUtil<Token>();
 		LexicalAnalysis(pu);
 		SyntacticAnalysis(pu);
 	}
 	
-	public void LexicalAnalysis(CommonParserUtil pu) {
+	public void LexicalAnalysis(CommonParserUtil<Token> pu) {
 		pu.lex("[ \t\n]", text -> { return null; });
 		pu.lexEndToken("$", text -> { return Token.END_OF_TOKEN; });
 		
-		pu.lex("address", text -> { return Token.ADDRESS; });
-		pu.lex("anonymous", text -> { return Token.ANONYMOUS; });
-		pu.lex("as(?!sembly)", text -> { return Token.AS; });
-		pu.lex("assembly", text -> { return Token.ASSEMBLY; });
-		pu.lex("bool", text -> { return Token.BOOL; });
-		pu.lex("break", text -> { return Token.BREAK; });
+		pu.lexKeyword("address", text -> { return Token.ADDRESS; });
+		pu.lexKeyword("anonymous", text -> { return Token.ANONYMOUS; });
+		pu.lexKeyword("as(?!sembly)", text -> { return Token.AS; });
+		pu.lexKeyword("assembly", text -> { return Token.ASSEMBLY; });
+		pu.lexKeyword("bool", text -> { return Token.BOOL; });
+		pu.lexKeyword("break", text -> { return Token.BREAK; });
 		// BYTE
-		pu.lex("constant", text -> { return Token.CONSTANT; });
-		pu.lex("continue", text -> { return Token.CONTINUE; });
-		pu.lex("contract", text -> { return Token.CONTRACT; });
-		pu.lex("days", text -> { return Token.DAYS; });
+		pu.lexKeyword("constant", text -> { return Token.CONSTANT; });
+		pu.lexKeyword("continue", text -> { return Token.CONTINUE; });
+		pu.lexKeyword("contract", text -> { return Token.CONTRACT; });
+		pu.lexKeyword("days", text -> { return Token.DAYS; });
 		// DECIMAL_NUMBER
-		pu.lex("delete", text -> { return Token.DELETE; });
-		pu.lex("do", text -> { return Token.DO; });
-		pu.lex("else", text -> { return Token.ELSE; });
-		pu.lex("enum", text -> { return Token.ENUM; });
-		pu.lex("ether", text -> { return Token.ETHER; });
-		pu.lex("event", text -> { return Token.EVENT; });
-		pu.lex("external", text -> { return Token.EXTERNAL; });
-		pu.lex("false", text -> { return Token.FALSE; });
-		pu.lex("finney", text -> { return Token.FINNEY; });
-		pu.lex("fixed", text -> { return Token.FIXED; });
-		pu.lex("for", text -> { return Token.FOR; });
-		pu.lex("from", text -> { return Token.FROM; });
-		pu.lex("function", text -> { return Token.FUNCTION; });
+		pu.lexKeyword("delete", text -> { return Token.DELETE; });
+		pu.lexKeyword("do", text -> { return Token.DO; });
+		pu.lexKeyword("else", text -> { return Token.ELSE; });
+		pu.lexKeyword("enum", text -> { return Token.ENUM; });
+		pu.lexKeyword("ether", text -> { return Token.ETHER; });
+		pu.lexKeyword("event", text -> { return Token.EVENT; });
+		pu.lexKeyword("external", text -> { return Token.EXTERNAL; });
+		pu.lexKeyword("false", text -> { return Token.FALSE; });
+		pu.lexKeyword("finney", text -> { return Token.FINNEY; });
+		pu.lexKeyword("fixed", text -> { return Token.FIXED; });
+		pu.lexKeyword("for", text -> { return Token.FOR; });
+		pu.lexKeyword("from", text -> { return Token.FROM; });
+		pu.lexKeyword("function", text -> { return Token.FUNCTION; });
 
 		pu.lex("0x[0-9a-fA-F]+", text -> { return Token.HEX_NUMBER; });
 		pu.lex("hex(\\\"([0-9a-fA-F]{2})*\\\"|\\\'([0-9a-fA-F]{2})*\\\')",
@@ -61,54 +61,54 @@ public class Parser {
 				+ "216|224|232|256)?", 
 				text -> { return Token.UINT; });
 		
-		pu.lex("byte(s(1[0-9]?|2[0-9]?|3(0|1|2)?|[4-9])?)?", 
+		pu.lexKeyword("byte(s(1[0-9]?|2[0-9]?|3(0|1|2)?|[4-9])?)?", 
 				text -> { return Token.BYTE; });
 		
-		pu.lex("string", text -> { return Token.STRING; });
+		pu.lexKeyword("string", text -> { return Token.STRING; });
 		
 		// DECIMAL_NUMBER must be after HEX_NUMBER, INT, UINT
 		pu.lex("[+-]?[0-9]+", text -> { return Token.DECIMAL_NUMBER; });
 		
-		pu.lex("hours", text -> { return Token.HOURS; });
+		pu.lexKeyword("hours", text -> { return Token.HOURS; });
 		// IDENTIFIER
-		pu.lex("if", text -> { return Token.IF; });
-		pu.lex("import", text -> { return Token.IMPORT; });
-		pu.lex("indexed", text -> { return Token.INDEXED; });
+		pu.lexKeyword("if", text -> { return Token.IF; });
+		pu.lexKeyword("import", text -> { return Token.IMPORT; });
+		pu.lexKeyword("indexed", text -> { return Token.INDEXED; });
 		// INT
-		pu.lex("interface", text -> { return Token.INTERFACE; });
-		pu.lex("internal", text -> { return Token.INTERNAL; });
-		pu.lex("is", text -> { return Token.IS; });
-		pu.lex("let", text -> { return Token.LET; });
-		pu.lex("library", text -> { return Token.LIBRARY; });
-		pu.lex("mapping", text -> { return Token.MAPPING; });
-		pu.lex("memory", text -> { return Token.MEMORY; });
-		pu.lex("minutes", text -> { return Token.MINUTES; });
-		pu.lex("modifier", text -> { return Token.MODIFIER; });
-		pu.lex("new", text -> { return Token.NEW; });
-		pu.lex("payable", text -> { return Token.PAYABLE; });
-		pu.lex("pragma", text -> { return Token.PRAGMA; });
-		pu.lex("([^;]+)\\;", text -> { return Token.PRAGMA_DIRECTIVE; });
-		pu.lex("private", text -> { return Token.PRIVATE; });
-		pu.lex("public", text -> { return Token.PUBLIC; });
-		pu.lex("pure", text -> { return Token.PURE; });
-		pu.lex("return", text -> { return Token.RETURN; });
-		pu.lex("returns", text -> { return Token.RETURNS; });
-		pu.lex("seconds", text -> { return Token.SECONDS; });
-		pu.lex("storage", text -> { return Token.STORAGE; });
-		pu.lex("\\\"([^\\\"\\r\\n\\\\]|\\\\.)*\\\"", 
+		pu.lexKeyword("interface", text -> { return Token.INTERFACE; });
+		pu.lexKeyword("internal", text -> { return Token.INTERNAL; });
+		pu.lexKeyword("is", text -> { return Token.IS; });
+		pu.lexKeyword("let", text -> { return Token.LET; });
+		pu.lexKeyword("library", text -> { return Token.LIBRARY; });
+		pu.lexKeyword("mapping", text -> { return Token.MAPPING; });
+		pu.lexKeyword("memory", text -> { return Token.MEMORY; });
+		pu.lexKeyword("minutes", text -> { return Token.MINUTES; });
+		pu.lexKeyword("modifier", text -> { return Token.MODIFIER; });
+		pu.lexKeyword("new", text -> { return Token.NEW; });
+		pu.lexKeyword("payable", text -> { return Token.PAYABLE; });
+		pu.lexKeyword("pragma", text -> { return Token.PRAGMA; });
+		pu.lexKeyword("([^;]+)\\;", text -> { return Token.PRAGMA_DIRECTIVE; });
+		pu.lexKeyword("private", text -> { return Token.PRIVATE; });
+		pu.lexKeyword("public", text -> { return Token.PUBLIC; });
+		pu.lexKeyword("pure", text -> { return Token.PURE; });
+		pu.lexKeyword("return", text -> { return Token.RETURN; });
+		pu.lexKeyword("returns", text -> { return Token.RETURNS; });
+		pu.lexKeyword("seconds", text -> { return Token.SECONDS; });
+		pu.lexKeyword("storage", text -> { return Token.STORAGE; });
+		pu.lexKeyword("\\\"([^\\\"\\r\\n\\\\]|\\\\.)*\\\"", 
 				text -> { return Token.STRING_LITERAL; } ); 
-		pu.lex("struct", text -> { return Token.STRUCT; });
-		pu.lex("szabo", text -> { return Token.SZABO; });
-		pu.lex("throw", text -> { return Token.THROW; });
+		pu.lexKeyword("struct", text -> { return Token.STRUCT; });
+		pu.lexKeyword("szabo", text -> { return Token.SZABO; });
+		pu.lexKeyword("throw", text -> { return Token.THROW; });
 		// UFIXED
 		// UINT
-		pu.lex("using", text -> { return Token.USING; });
-		pu.lex("var", text -> { return Token.VAR; });
-		pu.lex("view", text -> { return Token.VIEW; });
-		pu.lex("weeks", text -> { return Token.WEEKS; });
-		pu.lex("wei", text -> { return Token.WEI; });
-		pu.lex("while", text -> { return Token.WHILE; });
-		pu.lex("years", text -> { return Token.YEARS; });
+		pu.lexKeyword("using", text -> { return Token.USING; });
+		pu.lexKeyword("var", text -> { return Token.VAR; });
+		pu.lexKeyword("view", text -> { return Token.VIEW; });
+		pu.lexKeyword("weeks", text -> { return Token.WEEKS; });
+		pu.lexKeyword("wei", text -> { return Token.WEI; });
+		pu.lexKeyword("while", text -> { return Token.WHILE; });
+		pu.lexKeyword("years", text -> { return Token.YEARS; });
 		
 		pu.lex("\\!(?!=)", text -> { return Token.BANG; });
 		pu.lex("\\!\\=", text -> { return Token.BANGEQ; });

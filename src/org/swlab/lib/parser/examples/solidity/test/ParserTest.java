@@ -43,14 +43,18 @@ class ParserTest {
 	static final String tokensPragma =
 			"pragma solidity ^0.4.25;";
 	
+	static final String idwithkeywordprefix =
+			"addressOf address:0x123456789ABCDEF";
+	
 	@Test
 	void lexical_analsis_test1() throws IOException, LexerException, ParserException {
 		StringReader sr = new StringReader(
 			tokensAlpha + tokensSymbol + tokensDecimal + tokensIdentifier
-			+ tokensString + tokensHex + tokensIntUintByte + tokensPragma);
+			+ tokensString + tokensHex + tokensIntUintByte + tokensPragma
+			+ idwithkeywordprefix);
 		Parser parser = new Parser();
 		
-		parser.Lexing(sr);
+		parser.Lexing(sr,true);
 		
 		assertTrue(true);
 	}

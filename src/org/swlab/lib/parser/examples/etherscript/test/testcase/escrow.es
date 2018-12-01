@@ -12,7 +12,7 @@ escrow.() {by:customer, value:5ether};
 escrow.close() {by:seller};
 
 uint x;
-x = coin.balancOf(customer) {by:customer};
+x = coin.balanceOf(customer) {by:customer};
 
 assert x == 1;
 assert seller.balance == 15ether;

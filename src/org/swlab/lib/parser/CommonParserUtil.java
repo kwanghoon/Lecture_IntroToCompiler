@@ -104,6 +104,10 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	public void lex(String regExp, TokenBuilder<Token> tb) {
 		tokenBuilders.put(regExp, tb);
 	}
+	
+	public void lexKeyword(String regExp, TokenBuilder<Token> tb) {
+		tokenBuilders.put(regExp + "(?![a-zA-Z])", tb);
+	}
 
 	public void lexEndToken(String regExp, TokenBuilder<Token> tb) {
 		tokenBuilders.put(regExp, tb);
