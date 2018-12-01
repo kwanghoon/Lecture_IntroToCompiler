@@ -41,6 +41,9 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	private Stack<Stkelem> stack;
 
 	private int productionRuleIdx;
+	
+	// Configuration
+	private String workingdir = "./";
 
 	public CommonParserUtil() throws IOException {
 		super();
@@ -290,9 +293,9 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 	private void readInitialize() throws IOException {
 		try {
-			FileReader grammarFReader = new FileReader("grammar_rules.txt");
-			FileReader actionFReader = new FileReader("action_table.txt");
-			FileReader gotoFReader = new FileReader("goto_table.txt");
+			FileReader grammarFReader = new FileReader(getWorkingdir() + "grammar_rules.txt");
+			FileReader actionFReader = new FileReader(getWorkingdir() + "action_table.txt");
+			FileReader gotoFReader = new FileReader(getWorkingdir() + "goto_table.txt");
 	
 			BufferedReader grammarBReader = new BufferedReader(grammarFReader);
 			BufferedReader actionBReader = new BufferedReader(actionFReader);
@@ -398,7 +401,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 		fileContent += "]";
 
-		String directory = System.getProperty("user.dir");
+		String directory = System.getProperty("user.dir") + getWorkingdir();
 		String grammarPath = directory + "\\mygrammar.grm";
 		
 		// file �뜝�룞�삕�뜝占�
@@ -537,5 +540,13 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 		throw new ParserException("Line " + terminal.getLineIndex() + " : Char " + terminal.getChIndex() + " : "
 				+ "Parsing error " + sb.toString(), culprit, err_line_index, err_ch_index);
+	}
+
+	public String getWorkingdir() {
+		return workingdir;
+	}
+
+	public void setWorkingdir(String workingdir) {
+		this.workingdir = workingdir;
 	}
 }
