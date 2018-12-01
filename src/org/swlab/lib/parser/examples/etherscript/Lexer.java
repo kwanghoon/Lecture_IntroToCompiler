@@ -29,7 +29,7 @@ public class Lexer {
 		pu.lex("days", text -> { return Token.DAYS; });
 		// DECIMAL_NUMBER
 		pu.lex("delete", text -> { return Token.DELETE; });
-		pu.lex("do", text -> { return Token.DO; });
+//		pu.lex("do", text -> { return Token.DO; });				// Commented out temporarily for parsing dao.es!!
 		pu.lex("else", text -> { return Token.ELSE; });
 		pu.lex("enum", text -> { return Token.ENUM; });
 		pu.lex("ether", text -> { return Token.ETHER; });

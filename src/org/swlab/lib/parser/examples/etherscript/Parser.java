@@ -64,8 +64,8 @@ public class Parser {
 		pu.rule("Statement -> identifier = identifier . OptIdentifier ( Exprs ) { Properties } ;", () -> {
 			SendTransaction sendTr = new SendTransaction();
 			sendTr.retVar = (String)pu.getText(1);
-			sendTr.contractName = (String)pu.get(1+2);
-			String functionName = (String)pu.getText(3+2);
+			sendTr.contractName = (String)pu.getText(1+2);
+			String functionName = (String)pu.get(3+2);
 			sendTr.functionName = functionName == null ? "" : functionName;
 			sendTr.argExprs = (ArrayList<Expr>)pu.get(5+2);
 			sendTr.properties = (HashMap<String,Expr>)pu.get(8+2);
@@ -306,6 +306,12 @@ public class Parser {
 			return pu.get(1);
 		});
 		pu.rule("PostfixExpression -> PostfixExpression . identifier", () -> {
+			FieldAccess fieldAccess = new FieldAccess();
+			fieldAccess.obj = (Expr)pu.get(1);
+			fieldAccess.field = (String)pu.getText(3);
+			return fieldAccess;
+		});
+		pu.rule("PostfixExpression -> PostfixExpression . balance", () -> {
 			FieldAccess fieldAccess = new FieldAccess();
 			fieldAccess.obj = (Expr)pu.get(1);
 			fieldAccess.field = (String)pu.getText(3);
