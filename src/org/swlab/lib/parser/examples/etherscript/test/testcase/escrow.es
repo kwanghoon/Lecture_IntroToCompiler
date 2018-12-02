@@ -2,11 +2,11 @@
 account{balance:10ether} seller;
 account{balance:50ether} customer;
 
-account{contract:"coin.sol", by:seller} coin;
-account{contract:"escrow.sol", by:seller} escrow(coin, 1, 5ether);
+account{contract:"escrow.sol", by:seller} coin("MyCoin", 5, "mycoin", "MYC", 1);
+account{contract:"escrow.sol", by:seller} escrow("Escrow", coin, 1, 5);
 
-escrow.transfer(escrow,1) {by:seller};
-escrow.start(60minutes) {by:seller};
+coin.transfer(escrow,1) {by:seller};
+escrow.start(1) {by:seller};
 
 escrow.() {by:customer, value:5ether};
 escrow.close() {by:seller};
@@ -15,6 +15,6 @@ uint x;
 x = coin.balanceOf(customer) {by:customer};
 
 assert x == 1;
-assert seller.balance == 15ether;
-assert customer.balance == 45ether;
+assert seller.balance;
+assert customer.balance;
 
