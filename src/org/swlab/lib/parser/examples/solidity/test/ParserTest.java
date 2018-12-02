@@ -1,14 +1,17 @@
 package org.swlab.lib.parser.examples.solidity.test;
 
-import static org.junit.jupiter.api.Assertions.*;
+//import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.StringReader;
 
-import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.swlab.lib.parser.LexerException;
 import org.swlab.lib.parser.ParserException;
 import org.swlab.lib.parser.examples.solidity.Parser;
+
+import static junit.framework.TestCase.assertTrue;
 
 class ParserTest {
 

@@ -293,6 +293,10 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 	private void readInitialize() throws IOException {
 		try {
+			System.out.println(getWorkingdir() + "grammar_rules.txt");
+			System.out.println(getWorkingdir() + "action_table.txt");
+			System.out.println(getWorkingdir() + "goto_table.txt");
+
 			FileReader grammarFReader = new FileReader(getWorkingdir() + "grammar_rules.txt");
 			FileReader actionFReader = new FileReader(getWorkingdir() + "action_table.txt");
 			FileReader gotoFReader = new FileReader(getWorkingdir() + "goto_table.txt");
@@ -369,13 +373,13 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 			fileContent += "\tProductionRule \"" + data[0].trim() + "\" [";
 
-			// data[0] �뜝�룞�삕 ProductionRule �뜝�듅源띿삕 �뜝�룞�삕�뜝�떛源띿삕
+			// data[0] �뜝�룞�삕 ProductionRule �뜝�듅源띿�뜝�룞�삕�뜝�떛源띿
 			// data[1] �뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�뜝�룞�삕�뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕 Nonterminal Terminal �뜝�떎�뙋�삕 �뜝�떗�슱�삕
 			if (data.length > 1 && data[1].trim().length() > 0) {
 				String[] tok = data[1].trim().split("[ \t\n]");
 	
 				for (int j = 0; j < tok.length; j++) {
-					if (nonterminals.contains(tok[j])) { // �뜝�룞�삕�뜝�룞�삕 token�뜝�룞�삕 Nonterminal�뜝�룞�삕 �뜝�룞�삕�뜝占�
+					if (nonterminals.contains(tok[j])) { // �뜝�룞�삕�뜝�룞�삕 token�뜝�룞�삕 Nonterminal�뜝�룞�삕 �뜝�룞�삕�뜝��
 						fileContent += "Nonterminal \"";
 					}
 					else {
@@ -404,7 +408,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 		String directory = System.getProperty("user.dir") + getWorkingdir();
 		String grammarPath = directory + "\\mygrammar.grm";
 		
-		// file �뜝�룞�삕�뜝占�
+		// file �뜝�룞�삕�뜝��
 		try {
 			PrintWriter writer = new PrintWriter(grammarPath);
 			writer.println(fileContent);
@@ -418,14 +422,19 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 		String actionTablePath = directory + "/action_table.txt";
 		String gotoTablePath = directory + "/goto_table.txt";
 		
-		ProcessBuilder pb = new ProcessBuilder("cmd", "/c", directory + "/genlrparser-exe.exe",
-								"\"" + grammarPath + "\" -output \"" + grammarRulesPath + "\" \"" + actionTablePath + "\" \"" + gotoTablePath + "\"");
+		ProcessBuilder pb = new ProcessBuilder("cmd", "/c",
+				directory + "/genlrparser-exe.exe",
+				"\"" + grammarPath + "\" -output \""
+						+ grammarRulesPath + "\" \"" + actionTablePath + "\" \"" + gotoTablePath + "\"");
 		try {
+			System.out.println("genlrparser is starting...");
 			Process p = pb.start();
-			
+
+			System.out.println("Waiting for genlrparser...");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			
-			if (reader.readLine().equals("Done"))
+			String readStr = reader.readLine();
+			System.out.println("genlrparser: " + readStr);
+			if (readStr.equals("Done"))
 				readInitialize();
 		}
 		catch (IOException e) {

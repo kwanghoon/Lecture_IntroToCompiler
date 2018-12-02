@@ -29,6 +29,10 @@ public class Parser {
 		Lexer.LexicalAnalysis(pu);
 		SyntacticAnalysis(pu);
 	}
+
+	public void setWorkingDir(String relative) {
+		pu.setWorkingdir(relative);
+	}
 	
 	public void SyntacticAnalysis(CommonParserUtil<Token> pu) {
 		pu.ruleStartSymbol("Program'");
