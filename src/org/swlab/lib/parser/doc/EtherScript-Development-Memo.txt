@@ -1,0 +1,5 @@
+11/17일 : EthereumJ 샘플 완성 (11/1일 스터디 시작)
+11/22일 : 파서 라이브러리 정리 및 개발
+11/28일 : EtherScript 파서 초기 버전
+12/1일 : EtherScript 해석기 초기 버전. simple_storage.es 동작
+12/2일 : EtherScript 해석기 예제 동작 (일부 동작 비정상)
