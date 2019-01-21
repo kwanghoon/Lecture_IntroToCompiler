@@ -20,17 +20,17 @@ class InterpTest {
 		
 		// x = x + 1
 		Expr expr2 = new Assign("x", 
-				new BinOp(Expr.PLUS, new Var("x"), new Lit(1)));
+				new BinOp(BinOp.PLUS, new Var("x"), new Lit(1)));
 		
 		// y = x
 		Expr expr3 = new Assign("y", new Var("x"));
 		
 		// y = y - 1 * 2 / 3
 		Expr expr4 = new Assign("y",
-				new BinOp(Expr.MINUS,
+				new BinOp(BinOp.MINUS,
 					new Var("y"),
-					new BinOp(Expr.DIV,
-							new BinOp(Expr.MUL, new Lit(1), new Lit(2)),
+					new BinOp(BinOp.DIV,
+							new BinOp(BinOp.MUL, new Lit(1), new Lit(2)),
 							new Lit(3))));
 		
 		// expr1 ; expr2 ; expr3 ; expr4

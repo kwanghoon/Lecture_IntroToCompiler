@@ -5,7 +5,6 @@ public class Assign extends Expr {
 	private Expr rhs;
 	
 	public Assign(String varName, Expr rhs) {
-		this.op_kind = Expr.ASSIGN;
 		this.varName = varName;
 		this.rhs = rhs;
 	}
