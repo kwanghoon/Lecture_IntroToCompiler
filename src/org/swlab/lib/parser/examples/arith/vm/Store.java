@@ -10,4 +10,9 @@ public class Store extends Instr {
 	public String getVarName() {
 		return this.varName;
 	}
+	
+	@Override
+	public String toString() {
+		return "STORE " + varName;
+	}
 }

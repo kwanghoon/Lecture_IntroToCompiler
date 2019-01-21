@@ -16,4 +16,10 @@ public class Assign extends Expr {
 	public Expr getRhs() {
 		return rhs;
 	}
+	
+	@Override
+	public String toString() {
+		String exprStr = varName + " = " + rhs.toString();
+		return "(" + exprStr + ")";
+	}
 }

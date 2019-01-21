@@ -1,8 +1,8 @@
 package org.swlab.lib.parser.examples.arith.ast;
 
 public class BinOp extends Expr {
-	public final static int PLUS = 1;
-	public final static int MINUS = 2;
+	public final static int ADD = 1;
+	public final static int SUB = 2;
 	public final static int MUL = 3;
 	public final static int DIV = 4;
 	
@@ -11,8 +11,8 @@ public class BinOp extends Expr {
 	private Expr left, right;
 	
 	public BinOp(int op_kind, Expr left, Expr right) {
-		assert op_kind == PLUS 
-				|| op_kind == MINUS 
+		assert op_kind == ADD 
+				|| op_kind == SUB 
 				|| op_kind == MUL 
 				|| op_kind == DIV;
 		
@@ -33,4 +33,26 @@ public class BinOp extends Expr {
 		return right;
 	}
 
+	@Override
+	public String toString() {
+		String opstr = null;
+		switch(op_kind) {
+		case ADD:
+			opstr = "+";
+			break;
+		case SUB:
+			opstr = "-";
+			break;
+		case MUL:
+			opstr = "*";
+			break;
+		case DIV:
+			opstr = "/";
+			break;
+		default:
+			assert false;
+		}
+		String exprstr = left.toString() + " " + opstr + " " + right.toString();
+		return "(" + exprstr + ")";
+	}
 }

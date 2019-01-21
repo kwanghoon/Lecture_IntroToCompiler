@@ -22,9 +22,9 @@ public class Interp {
 			Integer rightV = expr(binOpExpr.getRight(), env);
 			
 			switch(binOpExpr.getOpKind()) {
-			case BinOp.PLUS:
+			case BinOp.ADD:
 				return leftV + rightV;
-			case BinOp.MINUS:
+			case BinOp.SUB:
 				return leftV - rightV;
 			case BinOp.MUL:
 				return leftV * rightV;

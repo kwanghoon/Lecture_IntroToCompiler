@@ -31,4 +31,16 @@ public class Push extends Instr {
 		assert this.operand_kind == LIT;
 		return intLit;
 	}
+	
+	@Override
+	public String toString() {
+		switch(operand_kind) {
+		case VAR:
+			return "PUSH " + varName;
+		case LIT:
+			return "PUSH " + intLit;
+		}
+		assert false;
+		return super.toString();
+	}
 }

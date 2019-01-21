@@ -19,4 +19,20 @@ public class InstrOp extends Instr {
 	public int getOpcode() {
 		return this.opcode;
 	}
+	
+	@Override
+	public String toString() {
+		switch(opcode) {
+		case ADD:
+			return "ADD";
+		case SUB:
+			return "SUB";
+		case MUL:
+			return "MUL";
+		case DIV:
+			return "DIV";
+		}
+		assert false;
+		return super.toString();
+	}
 }

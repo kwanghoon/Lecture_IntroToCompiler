@@ -10,4 +10,9 @@ public class Lit extends Expr {
 	public Integer getInteger() {
 		return integerLit;
 	}
+	
+	@Override
+	public String toString() {
+		return Integer.toString(integerLit);
+	}
 }
