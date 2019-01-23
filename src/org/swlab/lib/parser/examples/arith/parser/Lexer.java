@@ -5,7 +5,7 @@ import org.swlab.lib.parser.CommonParserUtil;
 public class Lexer {
 	public Lexer(CommonParserUtil<Token> pu) {
 		// $ is the EOT (End Of Token)
-		pu.lexEndToken("$", text -> { return Token.END_OF_TOKEN; });
+		pu.lexEndToken("\\$", text -> { return Token.END_OF_TOKEN; });
 		
 		// Remove all white spaces
 		pu.lex("[ \t\n]", text -> { return null; });

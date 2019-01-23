@@ -6,7 +6,7 @@ import org.swlab.lib.parser.examples.etherscript.Token;
 public class Lexer {
 	public static void LexicalAnalysis(CommonParserUtil<Token> pu) {
 		pu.lex("[ \t\n]", text -> { return null; });
-		pu.lexEndToken("$", text -> { return Token.END_OF_TOKEN; });
+		pu.lexEndToken("\\$", text -> { return Token.END_OF_TOKEN; });
 		
 		// New token for the ether script language
 		pu.lexKeyword("account", text -> { return Token.ACCOUNT; }); 

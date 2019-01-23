@@ -21,7 +21,7 @@ public enum Token implements TokenInterface<Token> {
 	@Override
 	public Token toToken(String str) throws ParserException {
 		for(Token token : Token.values()) {
-			if (token.strToken.contentEquals(str))
+			if (token.strToken.equals(str))
 				return token;
 		}
 		throw new ParserException("Token.toToken: " + str + " not expected.");

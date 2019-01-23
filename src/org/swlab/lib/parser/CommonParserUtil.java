@@ -142,6 +142,12 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 				break;
 			}
 		}
+		
+		if (DEBUG) {
+			for (String line : lineArr) {
+				System.out.print("Line: " + line);
+			}
+		}
 
 		lineno = 1;
 		TokenBuilder<Token> tb;
@@ -156,7 +162,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 			String line = lineArr.get(idx);
 			String str = "";
 			int front_idx = 0;
-
+			
 			while (front_idx < line.length()) {
 				int i;
 				
@@ -168,6 +174,10 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 					if (matcher.lookingAt()) {
 						int startIdx = matcher.start();
 						int endIdx = matcher.end();
+						
+						if (DEBUG) {
+							System.out.println("Pattern: " + regExp + " at " + line.substring(front_idx));
+						}
 						
 						str = line.substring(startIdx, endIdx);
 						matcher.region(endIdx, line.length());

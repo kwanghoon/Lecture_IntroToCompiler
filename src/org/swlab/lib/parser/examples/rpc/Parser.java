@@ -25,7 +25,7 @@ public class Parser {
 		pu.lex("\\(", text -> { return Token.OPENPAREN; });
 		pu.lex("\\)", text -> { return Token.CLOSEPAREN; });
 		pu.lex("\\.", text -> { return Token.DOT; });
-		pu.lexEndToken("$", text -> { return Token.END_OF_TOKEN; });
+		pu.lexEndToken("\\$", text -> { return Token.END_OF_TOKEN; });
 		
 		pu.ruleStartSymbol("L'");
 		pu.rule("L' -> L", () -> { return pu.get(1); });

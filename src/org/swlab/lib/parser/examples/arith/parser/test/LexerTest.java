@@ -11,8 +11,15 @@ import org.swlab.lib.parser.examples.arith.parser.Parser;
 
 class LexerTest {
 	
+//	static final String tokenTest = 
+//			"x = 123;\n" + 
+//			"x = x + 1;\n" + 
+//			"y = x;\n" + 
+//			"y = y - 1 * 2 / 3";
+	
 	static final String tokenSymbol = "+ - * / = ; ( )";
 	static final String tokenIdentifier = "i x123 hello x1y2z3";
+	
 	static final String tokenComplex = "x = 123;\n" + 
 			"x = x + 1;\n" + 
 			"y = x; \n" + 
@@ -21,9 +28,11 @@ class LexerTest {
 	@Test
 	void test() throws IOException, LexerException {
 		StringReader reader = new StringReader(
-				tokenSymbol + " " + 
-				tokenIdentifier + " " + 
-				tokenComplex);
+				//tokenTest + " " + 
+				//tokenSymbol + " " + 
+//				tokenIdentifier + " " + 
+				tokenComplex
+				);
 		Parser parser = new Parser();
 		parser.Lexing(reader, true);
 		assertTrue(true);
