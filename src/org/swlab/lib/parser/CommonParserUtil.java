@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
 import org.swlab.lib.parser.TokenInterface;
 
 public class CommonParserUtil<Token extends TokenInterface<Token>> {
+	private boolean DEBUG;
+	
 	// Lexer part
 	private int lineno;
 	private String endOfTok;
@@ -46,7 +48,6 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	private String workingdir = "./";
 
 	public CommonParserUtil() throws IOException {
-		super();
 		this.lexer = new ArrayList<Terminal<Token>>();
 
 		stack = new Stack<>();
@@ -122,6 +123,8 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	}
 	
 	public void Lexing(Reader r, boolean debug) throws IOException, LexerException {
+		DEBUG = debug;
+		
 		br = new BufferedReader(r);
 		lineArr = new ArrayList<>();
 
@@ -203,6 +206,8 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	}
 	
 	public Object Parsing(Reader r, boolean debug) throws ParserException, IOException, LexerException {
+		DEBUG = debug;
+		
 		readInitialize();
 
 		Lexing(r, debug);
@@ -293,9 +298,11 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 	private void readInitialize() throws IOException {
 		try {
-			System.out.println(getWorkingdir() + "grammar_rules.txt");
-			System.out.println(getWorkingdir() + "action_table.txt");
-			System.out.println(getWorkingdir() + "goto_table.txt");
+			if(DEBUG) {
+				System.out.println(getWorkingdir() + "grammar_rules.txt");
+				System.out.println(getWorkingdir() + "action_table.txt");
+				System.out.println(getWorkingdir() + "goto_table.txt");
+			}
 
 			FileReader grammarFReader = new FileReader(getWorkingdir() + "grammar_rules.txt");
 			FileReader actionFReader = new FileReader(getWorkingdir() + "action_table.txt");
@@ -379,7 +386,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 				String[] tok = data[1].trim().split("[ \t\n]");
 	
 				for (int j = 0; j < tok.length; j++) {
-					if (nonterminals.contains(tok[j])) { // �뜝�룞�삕�뜝�룞�삕 token�뜝�룞�삕 Nonterminal�뜝�룞�삕 �뜝�룞�삕�뜝��
+					if (nonterminals.contains(tok[j])) { // �뜝�룞�삕�뜝�룞�삕 token�뜝�룞�삕 Nonterminal�뜝�룞�삕 �뜝�룞�삕�뜝��
 						fileContent += "Nonterminal \"";
 					}
 					else {
@@ -408,7 +415,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 		String directory = System.getProperty("user.dir") + getWorkingdir();
 		String grammarPath = directory + "\\mygrammar.grm";
 		
-		// file �뜝�룞�삕�뜝��
+		// file �뜝�룞�삕�뜝��
 		try {
 			PrintWriter writer = new PrintWriter(grammarPath);
 			writer.println(fileContent);
