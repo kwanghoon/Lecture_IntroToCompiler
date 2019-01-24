@@ -67,6 +67,7 @@ public class Compiler {
 			
 			instrs.addAll(rhsInstrs);
 			instrs.add(new Store(varName));
+			instrs.add(new Push(varName));
 			
 		} else if (expr instanceof Lit) {
 			Lit litExpr = (Lit)expr;

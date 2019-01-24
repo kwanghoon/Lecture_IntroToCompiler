@@ -63,7 +63,7 @@ public class VM {
 			String varName = store.getVarName();
 			Integer v = stack.pop();
 			env.put(varName, v);
-			stack.push(v);
+			//stack.push(v);
 		} else {
 			assert false;
 		}

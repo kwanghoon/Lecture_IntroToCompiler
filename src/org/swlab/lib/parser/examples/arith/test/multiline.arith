@@ -1,5 +1,5 @@
-xx = 123;
-xx = xx + 1;
-yy = xx; 
-yy = yy - 1 * 2 / 3;
-zz = yy = xx
+x = 123;
+x = x + 1;
+y = x; 
+y = y - 1 * 2 / 3;
+z = y = x
