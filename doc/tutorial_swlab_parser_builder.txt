@@ -1,0 +1,721 @@
+간단한 컴파일러를 작성하는 요령
+
+ - 전남대학교 전자컴퓨터공학부 최광훈
+ - 2019년 1월 24일
+
+
+목차
+
+ 1. 컴파일러란 무엇인가
+ 2. 프로그래밍언어 Arith의 구문과 의미
+ 3. 가상기계 VM 명령어 구문과 의미
+ 4. Arith 프로그램을 VM 프로그램으로 컴파일하기
+ 5. 프로그래밍언어 Arith 파서 만들기
+ 6. 파서, 컴파일러, 가상기계를 합한 시스템
+ 7. 마무리
+
+
+1. 컴파일러란 무엇인가
+
+컴파일러는    소스프로그램(Source    program)을    타겟프로그램(Target
+program)으로 변환하는 프로그램이다. 
+
+일반적으로 C,  C++, Java,  Python, JavaScript와  같은 프로그래밍언어를
+사용하여     프로그램을    작성한다.     이러한    프로그램을     보통
+소스프로그램이라고 한다.
+
+타겟프로그램은    보통   어셈블리어(Assembly)    또는   기계어(Machine
+language)로 작성한다.  컴퓨터 중앙처리장치(CPU)에  따라 타겟프로그램을
+작성하는데 사용하는 프로그래밍언어가 다르다.  예를 들어, 보통 데스크탑
+컴퓨터에서  x86계열  중앙처리장치를  사용하는  경우  x86  어셈블리어로
+타겟프로그램을  작성하고,   스마트폰의  경우   ARM계열  중엉처리장치를
+사용하기    때문에    ARM   어셈블리어로    타겟프로그램을    작성하게
+된다.   자바가상기계(Java    vitual   machine)는   자바바이트코드(Java
+bytecode)로 타겟프로그램을 작성한다.
+
+예를 들어, 아래와 같은 소스프로그램을 가정해보자. 나중에 소개할 장난감
+프로그래밍언어 Arith로 작성한 프로그램이다.
+
+   x = 123;
+   x = x + 1;
+   y = x; 
+   y = y - 1 * 2 / 3;
+   z = y = x
+
+이  소스프로그램의  구문(syntax)과  의미(semantics)는  C,  C++,  Java,
+Python,  JavaScript와   같은  프로그램언어   중  어느   하나라도  배운
+사람이라면 쉽게 이해할 수 있을 것이다.
+
+Q. 위 소스프로그램의 구문을 설명하시오.
+
+Q. 위 소스프로그램의 의미를  설명하시오. 위 타겟프로그램을 실행한 다음
+   변수 x,y,z의 값은 무엇인가?
+
+
+또한  타겟프로그램의  예를  들어보자.   나중에  소개할  가상기계  VM의
+명령어(Instruction)으로 작성하였다.
+
+   PUSH 123
+   STORE x
+   PUSH x
+   POP
+   PUSH x
+   PUSH 1
+   ADD
+   STORE x
+   PUSH x
+   POP
+   PUSH x
+   STORE y
+   PUSH y
+   POP
+   PUSH y
+   PUSH 1
+   PUSH 2
+   MUL
+   PUSH 3
+   DIV
+   SUB
+   STORE y
+   PUSH y
+   POP
+   PUSH x
+   STORE y
+   PUSH y
+   STORE z
+   PUSH z
+   POP
+
+소스프로그램과 비교하면 구문과 의미를 이해하는데 조금 어려워졌다. 예제
+타겟프로그램을 이해하려면 스택(stack)과 기억장치(memory)에 대한 기초를
+알아야 한다.
+
+ - PUSH 123은  스택에 123을  집어넣는다.
+ - STORE x는 스택에서 숫자를 꺼내서 변수 x에 대입한다.
+ - PUSH x는 변수 x에 저장된 숫자를 꺼내서 스택에 집어넣는다.
+ - POP은 스택에서 숫자를 꺼내 버린다.
+ - ADD는 스택에서 숫자 두개를 꺼내서  더한다. SUB, MUL, DIV도 비슷하게
+   동작한다.
+
+각  명령어의 구문과  의미를  이해했다면  위에서 소개한  타겟프로그램을
+머리속으로 실행해 볼 수 있을 것이다.
+
+Q. 위 타겟프로그램을 실행한 다음 변수 x,y,z의 값은 무엇인가?
+
+사실  위의  타겟프로그램  예제는  소스프로그램  예제를  나중에  소개할
+컴파일러를 통해서 컴파일하여 얻은 것이다.
+
+일반적으로 컴파일 과정은 다음과 같다.
+
+  소스프로그램
+  
+     --> {구문 분석(Parsing)} -->
+     
+  소스프로그램 추상구문트리
+  
+     --> {컴파일} -->
+     
+  타겟프로그램 추상구문트리
+
+이렇게 얻어진 타겟프로그램을 가상기계 VM으로 실행한다.
+
+위의 예제에 대한 컴파일 과정과 가상기계에서 실행하는 과정은 다음과 같다.
+
+Parsing:
+(x = 123);
+(x = (x + 1));
+(y = x);
+(y = (y - ((1 * 2) / 3)));
+(z = (y = x))
+
+Compiling:
+PUSH 123
+STORE x
+PUSH x
+POP
+PUSH x
+PUSH 1
+ADD
+STORE x
+PUSH x
+POP
+PUSH x
+STORE y
+PUSH y
+POP
+PUSH y
+PUSH 1
+PUSH 2
+MUL
+PUSH 3
+DIV
+SUB
+STORE y
+PUSH y
+POP
+PUSH x
+STORE y
+PUSH y
+STORE z
+PUSH z
+POP
+
+Running VM:
+
+Environment:
+x = 124
+y = 124
+z = 124
+
+Successfully done.
+
+
+Q. 소스프로그램에서 세미콜론으로 분리된 4개의 식이 타겟프로그램의 어느
+   부분에 해당하는지 살펴보시오.
+
+
+
+
+2. 프로그래밍언어 Arith의 구문과 의미
+
+프로그래밍언어 Arith의 구문을 먼저 서술식으로 설명한다.
+
+ - Arith 프로그램은 식을 세미콜론으로 구분하여 나열한 것이다.
+
+   예) x = 123 ; x = x + 1 ; z = 0; y * z ; y = x
+
+ - 세미콜론으로  구분된  각각의  식은  산술식(arithmetic  expression),
+   할당식(assignment   expression)형태이다.   할당식의  왼편은   변수,
+   오른편은 임의의 식이 올 수 있다.
+
+   예) x = 123 또는 y * z
+
+ - 식을 구성하는 가장 기본식(primary expression)은 변수나 숫자이다.
+
+ - 괄호를 사용하여 복잡한 식을 구성할 수 있다.
+
+   예)  1 + (2 - 3) * 4 / 5
+
+Arith 프로그래밍언어의 식을 Java로 작성할 수 있다.
+
+ - x = 123
+
+   new Assign("x", new Lit(123))
+
+ - x = x + 1
+
+   new Assign("x",
+     new BinOp(BinOp.ADD, new Var("x"), new Lit(1)))
+
+ - y - 1 * 2 / 3
+
+   new BinOp(BinOp.SUB,
+	new Var("y"),
+	new BinOp(BinOp.DIV,
+		new BinOp(BinOp.MUL, new Lit(1), new Lit(2)),
+		new Lit(3)))
+
+ - x = 123 ; x = x + 1
+
+   Expr[] exprs = {
+   	  new Assign("x", new Lit(123)),
+	  new Assign("x",
+	       new BinOp(BinOp.ADD, new Var("x"), new Lit(1)))
+   };
+   
+   exprSeq = new ArrayList<Expr>(Arrays.asList(exprs));
+
+
+위에서 보여준  Java 코드를 추상구문트리(Abstract syntax  tree)라 한다.
+추상구문트리는   소스프로그램의   구문을   트리   자료구조(tree   data
+structure)로 요약해서 표현한 것이다.
+
+위 추상구문 트리를 위해서 Java 클래스들을 준비해두어야 한다.
+
+ - arith.ast 패키지의 클래스들
+     Expr
+     Assign extends Expr
+     BinOp extends Expr
+     Lit extends Expr
+     Var extends Expr
+
+ - 세미콜론으로  구분된   식들을  표현할  때   Java의  ArrayList<Expr>
+   클래스를 사용한다.
+
+Q. 다음 식을 Java로 작성한 추상구문트리를 만들어보시오.
+
+ - z = y
+
+ - z + 123
+
+다음 식을 Java로 작성한 추상구문트리를 만들때 주의할 점이 있다. 예를 들어,
+1 + 2 * 3에 대한 추상구문트리를 
+
+ new BinOp(BinOp.MUL,
+     new BinOp(BinOp.ADD, new Lit(1), new Lit(2)),
+     new Lit(3))
+
+와 같이 만들면 안된다. 정확한 추상구문트리는 아래와 같다.
+
+ new BinOp(BinOp.ADD,
+     new Lit(1),
+      new BinOp(BinOp.MUL, new Lit(2), new Lit(3)))
+
+앞의  추상구문트리가 표현한  Arith  프로그래밍언어의 식은
+
+ - (1 + 2) * 3이고,
+
+뒤에서 표현한 식은
+
+ - 1 + (2 * 3)이다.
+
+소스프로그램에서  직접 괄호를  사용하여  (1 +  2)  * 3이라고  작성하면
+덧셈을 하고 곱셈을 해야하지만 괄호가 없다면 먼저 곱셈을 한다.
+
+추상구문트리에서 아래쪽(루트와 멀리 떨어져  있는 곳에) 위치한 부분부터
+먼저 계산하는 것이 일반적이다.
+
+C,  C++, Java,  Python,  JavaScript에서도  이렇게 해석하도록  정의되어
+있는데 연산자 우선순위(operator precedence) 규칙이라고 부른다.
+
+위의 예는 서로 다른 연산자 +와 *를 혼합해서 사용할 때 인데, 동일한 연산자를
+여러번 사용하는 식을 추상구문트리로 작성할 때도 주의해야 한다.
+
+1 - 2 - 3에 대한 추상구문트리를 다음과 같이
+
+ new BinOp(BinOp.SUB,
+     new Lit(1),
+      new BinOp(BinOp.SUB, new Lit(2), new Lit(3)))
+
+작성하여  (1 -  2) -  3으로 왼쪽에서 차례로 뺄셈을 하도록 해석하는  것이 맞다.
+
+
+하지만  x =  y =  z에 대한 추상구문트리는
+
+ new Assign("x",
+     new Assign("y", Var("z")))
+
+와 같이  작성하여 x  = (y  = z)로  해석한다. 오른쪽에서  차례로 변수에
+대입하도록 해석한다. 즉,  변수 z의 값을 변수 y에 넣고,  대입한 그 값을
+변수 x에 넣는다.
+
+역시 C, C++, Java, Python, JavaScript에서도 이렇게 해석하도록 정의되어
+있는데 연산자 결합(operator associativity) 규칙이라고 부른다.
+
+주어진  Arith  소스프로그램에   대한  추상구문트리를  작성하는  방법을
+설명했다.  Arith 소스프로그램의 의미(semantics)를 정의해보자.
+
+해석기(interpreter)라고 하는  함수를 작성하여  프로그래밍언어의 의미를
+정의할  수  있다.   이  함수의 입력은  추상구문트리이고,  출력은  실행
+결과이다.  Arith언어의  경우 프로그램  실행이 종료되었을 때  각 변수에
+들어 있는 값이 실행 결과이다.
+
+ - 예) x = 123 ; x = x + 1 ; z = 0; y * z ; y = x
+
+      위 프로그램의 의미는 변수 x는 124, z는 0, y도 124이다.
+
+이렇게  어떤  변수가  어느  값을  가지고  있는지  보관하는  자료구조를
+환경(environgment)라고 부른다. 환경은 보통 아래와 같이 표기한다.
+
+ - { x=124, y=124, z=0 }
+
+Java의  HashMap<String,Integer> 클래스를  사용하면 Java로  쉽게 환경을
+작성하여 다룰 수 있다.
+
+ - HashMap<String,Integer> env = new HashMap<String,Integer>();
+   env.put("x", 124);
+   env.put("y", 124);
+   env.put("z", 0);
+
+ - env.get("x")는 124가 될 것이다.
+
+프로그램언어 Arith의 해석기를 Interp 클래스의 seq함수와 expr함수로 작성해보자.
+
+seq함수는 세미콜론으로 구분된 식들을 받아 환경을 변경하여 결과로 내고,
+expr함수는 하나의 식을 받아 환경을 바꾸고 정수를 실행 결과로 반환한다.
+
+seq함수는  ArrayList<Expr>   객체로  표현된  식들을  받아   각  식마다
+expr함수를 호출하여 차례대로 실행하도록 작성한다.
+
+ - void seq(ArrayList<Expr> exprList, HashMap<String, Integer> env) {
+	int index = 0;
+		
+	while (index < exprList.size()) {
+		Integer retV = expr(exprList.get(index), env);
+		index = index + 1;
+	}
+   }
+
+expr함수는  다음과 같이  작성한다.   식을 Expr  객체로  받아, 이  식이
+BinOp이면 산술계산,  Assign이면 변수에 값을 대입하여  환경을 변경하고,
+Lit이면 상수, Var이면 환경 env에서 변수를 읽는 것을 실행한다.
+
+ - Integer expr(Expr expr, HashMap<String, Integer> env) {
+	if (expr instanceof BinOp) {
+		BinOp binOpExpr = (BinOp)expr;
+			
+		Integer leftV = expr(binOpExpr.getLeft(), env);
+		Integer rightV = expr(binOpExpr.getRight(), env);
+			
+		switch(binOpExpr.getOpKind()) {
+		case BinOp.ADD:
+			return leftV + rightV;
+		case BinOp.SUB:
+			return leftV - rightV;
+		case BinOp.MUL:
+			return leftV * rightV;
+		case BinOp.DIV:
+			return leftV / rightV;
+
+		}
+	} else if (expr instanceof Assign) {
+		Assign assignExpr = (Assign)expr;
+			
+		String varName = assignExpr.getVarName();
+		Expr rhs = assignExpr.getRhs();
+			
+		Integer rhsV = expr(rhs, env);
+		env.put(varName, rhsV);
+			
+		return rhsV;
+	} else if (expr instanceof Lit) {
+		Lit litExpr = (Lit)expr;
+			
+		Integer intLitV = litExpr.getInteger();
+			
+		return intLitV;
+	} else if (expr instanceof Var) {
+		Var varExpr = (Var)expr;
+			
+		String varName = varExpr.getVarName();
+		Integer varV = env.get(varName);
+		assert varV != null;
+			
+		return varV;
+	}
+}
+
+프로그래밍언어 Arith의 해석기를 사용하여 주어진 소스프로그램을 실행하는
+방법은 다음과 같다.
+
+ - ArrayList<Expr> exprSeq =  ... 추상구문트리 ...
+
+   HashMap<String,Integer> env = new HashMap<String,Integer>();
+   Interp.seq(exprSeq, env);
+
+exprSeq는 세미콜론으로  구분된 식들의 리스트에  대한 추상구문트리이다.
+실행을 위해서 비어있는 환경 env를 만든다.
+
+
+
+3. 가상기계 VM 명령어 구문과 의미
+
+이제  타겟프로그램을 작성할  때 사용하는  가상기계 VM  명령어의 구문과
+의미를 살펴보자.   앞서 프로그램언어 Arith의 구문과  의미를 살펴보면서
+기초 개념을 배웠는데 동일한 개념을 활용한다.
+
+
+각 명령어를 표현하는 추상구문트리를 위해서 Java 클래스들을 정의하였다.
+
+ - Instr
+ - Push extends Instr
+ - Pop extends Instr
+ - InstrOp extends Instr
+ - Store extends Instr
+
+예를  들어,  왼편의  가상기계 명령어를  오른편과  같이  추상구문트리를
+만든다.
+
+ Push 2      Instr i1 = new Push(2);
+ Push 1      Instr i2 = new Push(1);
+ Store x     Instr i3 = new Store("x");
+ Push x      Instr i4 = new Push("x");
+ Add         Instr i5 = new InstrOp(InstrOp.ADD);
+ Store y     Instr i6 = new Store("y");
+ Push y      Instr i7 = new Push("y");
+ Pop         Instr i8 = new Pop();
+
+             Instr[] instrArr = {i1,i2,i3,i4,i5,i6,i7,i8};
+             ArrayList<Instr> instrs
+	       = new ArrayList<Instr>(Arrays.asList(instrArr);
+
+각 명령어에 대해 동일한 이름의 Java 클래스를 작성하였다.
+
+ - Push 클래스는 Push(2) 또는 Push("x")와 같이 숫자나 변수를 지정할 수
+   있다.
+ - Store 클래스는 변수를 지정한다.
+ - 산술계산을 위한 명령어를 표현하기 위해  ADD, SUB, MUL, DIV 클래스가
+   있다. 가상기계의  스택에 숫자를 꺼내 계산하기  때문에 별도의 인자를
+   지정하지 않는다.
+ - Pop 클래에도 별도의 인자를 지정하지 않는다.
+
+타겟프로그램은 이러한 클래스로 작성한 객체들을 Java의 ArrayList<Instr>
+클래스로 순서대로 모아 리스트로 만들어 작성한다.
+
+지금까지 가상기계 명령어로 작성한 타겟프로그램을 Java로 추상구문트리를
+만드는  방법을 설명하였다.  이제  이 추상구문트리를  받아 각  명령어를
+차례로 실행하여  최종적으로 환경을  결과로 내는  타겟프로그램의 의미를
+정의해보자.  앞에서와 같이 타겟프로그램의 해석기 함수를 만든다.
+
+가상기계 해석기는 VM 클래스의 run함수와 interp함수로 작성한다.
+
+ - void run(ArrayList<Instr> instrs, HashMap<String,Integer> env) {
+	int index = 0;
+	Stack<Integer> stack = new Stack<Integer>();
+		
+	while (index < instrs.size()) {
+		interp(instrs.get(index), env, stack);
+		index = index + 1;
+	}
+   }
+
+ - void interp(
+   	Instr instr, HashMap<String,Integer> env, Stack<Integer> stack) {
+
+	if (instr instanceof InstrOp) {
+		InstrOp instrOp = (InstrOp)instr;
+		Integer v2 = stack.pop();
+		Integer v1 = stack.pop();
+		switch(instrOp.getOpcode()) {
+		case InstrOp.ADD:
+			stack.push(v1 + v2);
+			break;
+		case InstrOp.SUB:
+			stack.push(v1 - v2);
+			break;
+		case InstrOp.MUL:
+			stack.push(v1 * v2);
+			break;
+		case InstrOp.DIV:
+			stack.push(v1 / v2);
+			break;
+		}
+	} else if (instr instanceof Push) {
+		Push push = (Push)instr;
+		Integer v;
+			
+		switch(push.getOperandKind()) {
+		case Push.LIT:
+			v = push.getIntLit();
+			stack.push(v);
+			break;
+		case Push.VAR:
+			String varName = push.getVarName();
+			v = env.get(varName);
+			assert v != null;
+			stack.push(v);
+			break;
+		}
+	} else if (instr instanceof Pop) {
+		Pop pop = (Pop)instr;
+		Integer v = stack.pop();
+	} else if (instr instanceof Store) {
+		Store store = (Store)instr;
+		String varName = store.getVarName();
+		Integer v = stack.pop();
+		env.put(varName, v);
+	} 
+   }
+
+이렇게  작성한  가상기계  해석기를  사용하여  타겟프로그램을  실행하는
+방법은 다음과 같다.
+
+ - ArrayList<Instr> instrs = ... 추상구문트리 ...
+   HashMap<String,Integer> env = new HashMap<String,Integer>();
+		
+   VM.run(instrs, env);
+
+instrs는  주어진  타겟프로그램의 추상구문트리이고,  해석기를  실행하기
+전에 초기 환경 env를 만든다.
+
+
+4. Arith 프로그램을 VM 프로그램으로 컴파일하기
+
+지금까지  소스프로그램과 타겟프로그램을  각각 추상구문트리로  작성하는
+방법을 살펴보았다. 이제  소스프로그램을 타겟프로그램으로 컴파일 변환할
+준비가 되었다.
+
+Arith 컴파일러는 소스프로그램의 추상구문트리를 입력받아 타겟프로그램의
+추상구문트리를 출력하는 함수로 작성한다.
+
+ - 소스프로그램의 추상구문트리 : ArrayList<Expr>
+ - 타겟프로그램의 추상구문트리 : ArrayList<Instr>
+
+이름이   동일한(overloading된)   두  개의   compile함수로   컴파일러를
+작성해보자.
+
+ - 세미콜론으로 분리된 식 리스트를 입력받아 명령어 리스트를 출력하는 함수
+ - 하나의 식을 입력받아 명령어 리스트를 출력하는 함수
+
+
+ - ArrayList<Instr> compile(ArrayList<Expr> exprSeq) {
+	ArrayList<Instr> instrs = new ArrayList<Instr>();
+		
+	int index = 0;
+	while (index < exprSeq.size()) {
+		ArrayList<Instr> subInstrs = compile(exprSeq.get(index));
+			
+		instrs.addAll(subInstrs);
+		instrs.add(new Pop());
+			
+		index = index + 1;
+	}
+	
+	return instrs;
+   }
+
+ - ArrayList<Instr> compile(Expr expr) {
+	ArrayList<Instr> instrs = new ArrayList<Instr>();
+	if (expr instanceof BinOp) {
+		BinOp binOpExpr = (BinOp)expr;
+			
+		ArrayList<Instr> leftInstrs = compile(binOpExpr.getLeft());
+		ArrayList<Instr> rightInstrs = compile(binOpExpr.getRight());
+			
+		instrs.addAll(leftInstrs);
+		instrs.addAll(rightInstrs);
+			
+		switch(binOpExpr.getOpKind()) {
+		case BinOp.ADD:
+			instrs.add(new InstrOp(InstrOp.ADD));
+			break;
+		case BinOp.SUB:
+			instrs.add(new InstrOp(InstrOp.SUB));
+			break;
+		case BinOp.MUL:
+			instrs.add(new InstrOp(InstrOp.MUL));
+			break;
+		case BinOp.DIV:
+			instrs.add(new InstrOp(InstrOp.DIV));
+			break;
+		}
+	} else if (expr instanceof Assign) {
+		Assign assignExpr = (Assign)expr;
+			
+		String varName = assignExpr.getVarName();
+		Expr rhs = assignExpr.getRhs();
+			
+		ArrayList<Instr> rhsInstrs = compile(rhs);
+			
+		instrs.addAll(rhsInstrs);
+		instrs.add(new Store(varName));
+		instrs.add(new Push(varName));
+			
+	} else if (expr instanceof Lit) {
+		Lit litExpr = (Lit)expr;
+			
+		Integer intLitV = litExpr.getInteger();
+			
+		instrs.add(new Push(intLitV));
+	} else if (expr instanceof Var) {
+		Var varExpr = (Var)expr;
+			
+		String varName = varExpr.getVarName();
+			
+		instrs.add(new Push(varName));
+	}
+	return instrs;
+  }
+
+컴파일 과정을 예를 들어 살펴보자.
+
+ - new Var("x")  ===>  new Push("x")
+ 
+ - new Lit(123)  ===>  new Push(123)
+ 
+ - new Assign("x", 123)
+     ===> new Push(123)
+          new Store("x")
+	  new Push("x")
+	  
+ - new BinOp(BinOp.ADD, "x", 123)
+     ===> new Push("x")
+          new Push(123)
+	  new InstrOp(InstrOp.ADD)
+
+참고로  위  예제에서는 이해하기  쉬운  형태로  다소 부정확하게  작성한
+것이다.   컴파일  변환으로  얻은  타겟프로그램  추상구문트리를  정확히
+작성하려면  ArrayList<Instr>  객체를   만들어  나열한  Instr  객체들을
+리스트로 작성해야 한다.
+
+
+이제    컴파일러를    완성하였다.   그러면    주어진    소스프로그램의
+추상구문트리를 컴파일 변환하여 타겟프로그램의 추상구문트리를 만들고 이
+타겟프로그램을 가상기계를 통해 실행하는 과정을 쉽게 작성할 수 있다.
+
+ - ArrayList<Expr> exprSeq = ... 소스프로그램 추상구문트리 ...
+
+   Expr.prettyPrint(exprSeq);
+
+   ArrayList<Instr> instrs = 
+	arith.comp.Compiler.compile(exprSeq);
+		
+   Instr.prettyPrint(instrs);
+
+   HashMap<String,Integer> envVM = new HashMap<String,Integer>();
+   VM.run(instrs, envVM);
+
+
+소스프로그램   추상구문트리가   exprSeq에  주어져   있다고   가정하자.
+compile함수로  타겟프로그램  추상구문트리  instrs를  만들고,  초기환경
+envVM을을 만들어 run함수로 이 타겟프로그램을 실행시킬 수 있다.
+
+
+
+5. 프로그래밍언어 Arith 파서 만들기
+
+프로그래밍언어   Arith와   가상기계    VM에   대한   컴파일러에   대해
+알아보았다.  전체  컴파일러를  완성하기   위해서는  구문  분석  과정이
+필요하다.  앞에서 언급했었던 컴파일 과정을 다시 떠올려보자.
+
+  소스프로그램
+  
+     --> {구문 분석(Parsing)} -->
+     
+  소스프로그램 추상구문트리
+  
+     --> {컴파일} -->
+     
+  타겟프로그램 추상구문트리
+
+구문  분석이란  텍스트  파일  형태로  주어진  소스프로그램을  입력받아
+해당하는 추상구문트리를  만드는 과정이다. 텍스트 파일은  사실 바이트를
+나열한 것으로 트리 자료구조가 가지고 있는 정보가 빠져 있다. 예를 들면,
+텍스트 파일에 포함된 1 + 2 * 3은
+
+ - '1', ' ', '+', '2', ' ', '*', ' ', '3'
+
+과 같은 바이트 리스트에 불과하다. 구문 분석을 통하여
+
+ - new BinOp(BinOp.ADD,
+       new Lit(1),
+       new BinOp(BinOp.MUL, new Lit(2), new Lit(3)))
+
+의 추상구문트리를  만들어야 그 다음  단계인 컴파일 과정에서  사용할 수
+있다.
+
+
+[ To Be Continued ... ]
+
+프로그래밍언어 Arith에서 연산자 우선순위와 연산자 결합 규칙을 요약하면
+다음과 같다.
+
+-------------------------------------------
+  연산자      우선순위      결합성
+-------------------------------------------
+   ;          낮다         왼쪽에서 오른쪽으로
+   =                      오른족에서 왼쪽으로
+   +,-                    왼쪽에서 오른쪽으로
+   *,/        높다         왼쪽에서 오른쪽으로
+-------------------------------------------
+
+
+
+6. 파서, 컴파일러, 가상기계를 합한 시스템
+
+
+7. 마무리
+
+
+
+
