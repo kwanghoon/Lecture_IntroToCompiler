@@ -765,10 +765,13 @@ envVM을을 만들어 run함수로 이 타겟프로그램을 실행시킬 수 있다.
   연산자      우선순위      결합성
 -------------------------------------------
    ;          낮다         왼쪽에서 오른쪽으로
-   =                      오른족에서 왼쪽으로
+   =                      오른쪽에서 왼쪽으로
    +,-                    왼쪽에서 오른쪽으로
    *,/        높다         왼쪽에서 오른쪽으로
 -------------------------------------------
+
+문법을 작성하는  요령은 우선순위가 높은 연산자에  대한 생산규칙을 먼저
+작성하고 그 다음 우선순위에 따라 차례로 작성한다.
 
 우선순위가  높은 연산자가  트리 안쪽에  있고 우선순위가  낮은 연산자가
 트리 바깥쪽에  있도록 문법을  작성한다.  따라서, 우선순위가  가장 높은
@@ -834,10 +837,41 @@ Q. 지금까지 설명한 생산규칙을 모으면 다음과 같다.
 계산하는  결합 규칙을  반영하여  AdditiveExpr  넌터미널을 덧셈과  뺄셈
 연산자의 왼편에 두었다. +와 -는 모두 터미널이다.
 
+Q. 지금까지 설명한 생산규칙을 모으면 다음과 같다.
+
+ - PrimaryExpr -> identifier
+ - PrimaryExpr -> integer_number
+ - MultiplicativeExpr -> PrimaryExpr
+ - MultiplicativeExpr -> MultiplicativeExpr * PrimaryExpr
+ - MultiplicativeExpr -> MultiplicativeExpr / PrimaryExpr
+ - AdditiveExpr -> MultiplicativeExpr
+ - AdditiveExpr -> AdditiveExpr + MultiplicativeExpr
+ - AdditiveExpr -> AdditiveExpr - MultiplicativeExpr
+
+1  + x  * 123을  위 생산규칙을  사용하여 구문분석해보시오.  시작심볼로
+AdditiveExpr을 사용하시오.
+
+
 다음은 할당연산자에 관한 생산규칙이다.
 
  - AssignExpr -> AdditiveExpr
  - AssignExpr -> identifier = AssignExpr
+
+Q. 지금까지 설명한 생산규칙을 모으면 다음과 같다.
+
+ - PrimaryExpr -> identifier
+ - PrimaryExpr -> integer_number
+ - MultiplicativeExpr -> PrimaryExpr
+ - MultiplicativeExpr -> MultiplicativeExpr * PrimaryExpr
+ - MultiplicativeExpr -> MultiplicativeExpr / PrimaryExpr
+ - AdditiveExpr -> MultiplicativeExpr
+ - AdditiveExpr -> AdditiveExpr + MultiplicativeExpr
+ - AdditiveExpr -> AdditiveExpr - MultiplicativeExpr
+ - AssignExpr -> AdditiveExpr
+ - AssignExpr -> identifier = AssignExpr
+
+  x  = y  =  1 +  2  * 3을  위  생산규칙을 사용하여  구문분석해보시오.
+  시작심볼로 AssignExpr을 사용하시오.
 
 앞서  정의했던   생산규칙과  다른  점은   할당연산자는  오른쪽에서부터
 계산하는 결합규칙을 따르는  것이다. 즉 x =  y = 1로부터 x =  (y = 1)의
@@ -858,6 +892,19 @@ Q. 지금까지 설명한 생산규칙을 모으면 다음과 같다.
 
  - PrimaryExpr -> ( AssignExpr )
 
+Q.  x =  (y =  123) *  2와 x  = y  = 123  * 2의  실행하면 어떤  차이가
+   발생하는가?
+   
+Q.  x  =  (y  =   123)  *  2을  구문분석하시오.  시작심볼로  SeqExpr을
+   가정하시오.
+
+Q. x = y * 3 = 7 구문분석을 하면 그 결과는 무엇인가? 
+
+Q.  아래  생산규칙에서 AssignExpr을  괄호 안에 배치한  이유는 무엇인지
+   설명하시오. 또는 AssignExpr 대신 SeqExpr을 놓으면 어떻게 되는가?
+
+ - PrimaryExpr -> ( AssignExpr )
+ 
 이 생산규칙에서 여는 괄호 (와  닫는 괄호)도 모두 터미널이다. 괄호 안에
 올 수 있는 식은 AssignExpr 넌터미널로 정의된 구조를 갖는다. 예를 들어,
 SeqExpr 넌터미널로 정의된 구조의 식은 괄호 안에 올 수 없다.
@@ -904,6 +951,9 @@ SeqExpr 넌터미널로 정의된 구조의 식은 괄호 안에 올 수 없다.
  - 'm', 'y', 'v',  'a', 'r', ' ',  '=', '1', '2', '3', ';',  ' ', 'm',
    'y', 'v', 'a', 'r', ' ', '=', 'm',  'y', 'v', 'a', 'r', ' ', '+', '
    ', '1'
+
+구문분석의 첫번째  단계는 텍스트 문자 리스트를  터미널 리스트로 바꾸는
+작업이다.  이를 Lexical analysis라고 부른다.
 
 이러한 입력 텍스트를 Java로 작성한 터미널 리스트로 바꾸면 다음과 같다.
 
@@ -954,7 +1004,7 @@ identifier는 알파벳과  숫자로 이루어진  정해진 규칙에  따르는 텍스트를
 "$"로 토큰끝을 표시한다.
 
  -----------------------------------------------  
-   정규식 (매치될 텍스트 정의)       토큰 (이름)
+   정규식 (매치될 텍스트 정의)       토큰/터미널 (이름)
  -----------------------------------------------  
    [0-9]+                  ==>   integer_number
    (                       ==>   (
@@ -965,7 +1015,7 @@ identifier는 알파벳과  숫자로 이루어진  정해진 규칙에  따르는 텍스트를
    /                       ==>   /
    =                       ==>   =
    ;                       ==>   ;
-   [a-zA-Z]+[a-zA-Z0-9]*   ==>   identifier
+   [a-zA-Z][a-zA-Z0-9]*    ==>   identifier
  -----------------------------------------------
 
 소스프로그램  텍스트에서  정규식에  매치되는  문자열을  찾을때마다  이
@@ -983,7 +1033,8 @@ analysis라고 부르고, 이 과정을 담당하는 모듈을 lexer라고 한다.
 
 Q. 토큰과 터미널의 차이는 무엇인가?
 
-Q. 소스프로그램 텍스트 "x123 + 123"의 터미널 리스트를 작성하시오.
+Q.  소스프로그램 텍스트  "x123  + 123"의  터미널 리스트를  작성하시오.
+   정규식과 터미널 이름 표와 터미널 리스트 예제를 참고하여 작성하시오.
 
 
 5.2 프로그래밍언어 Arith 구문을 받아들이는 오토마톤
@@ -1174,25 +1225,25 @@ SeqExpr'으로 설정한다.
 트리를 만드는 오토마톤은 다음과 같다.
 
  - 입력:
-    1) 액션테이블, 고우투테이블, 문법테이블
-    2) 토큰 리스트 
+    1) 액션 테이블, 고우투 테이블, 생산규칙 테이블
+    2) 터미널 리스트 
  - 출력:
     1) 추상구문트리 (구문 에러가 발생하지 않은 경우)
 
  - 알고리즘:
     1) 초기화
       1-1) 현재 상태를 0을 스택에 넣기
-      1-2) 토큰 리스트의 맨 앞에 있는 토큰을 현재 토큰으로 설정
+      1-2) 터미널 리스트의 맨 앞에 있는 터미널을 현재 터미널로 설정
     
     2) 아래 과정을 반복
-      2-1) 스택 탑의 상태와 현재 토큰을 키로 액션 테이블을 참고하여
+      2-1) 스택 탑의 상태와 현재 터미널을 키로 액션 테이블을 참고하여
            취할 액션을 구한다.
 
         2-1-1) Shift n 액션이면,
-	   현재 토큰을 스택에 넣고, 상태 번호 n을 스택에 넣기
+	   현재 터미널을 스택에 넣고, 상태 번호 n을 스택에 넣기
 
         2-1-2) Reduce i 액션이면,
-	   - 문법테이블에서 번호 i의 생산규칙을 A -> RHS을 찾아,
+	   - 생산규칙 테이블에서 번호 i의 생산규칙을 A -> RHS을 찾아,
 	   
 	   - RHS의 길이의 2배만큼 스택에서 원소를 꺼내 버리고,
 	   
@@ -1207,6 +1258,327 @@ SeqExpr'으로 설정한다.
 Q.   소스프로그램  1 +  2  *  3을  가정하고 위의  오토마톤  알고리즘을
     따라해보시오.
 
+소스프로그램 텍스트
+ 1 +  2  *  3
+
+={lexical analysis}=>
+n
+터미널 리스트
+ 1, +, 2, *, 3, $
+
+={syntactic analysis}=>
+
+추상구문트리
+
+
+
+(추상구문트리를 만들기 위해서) 오토마톤 알고리즘을 적용하는 과정
+
+ stack: 0
+
+ current terminal : integer_number("1")
+
+>>>
+
+ Shift 7
+
+ stack: 7 integer_number("1") 0
+ 
+ current terminal : ADD("+")
+
+>>>
+ 
+ Reduce 12
+
+ 12: PrimaryExpr -> integer_number
+
+ stack:  0
+
+ 0, PrimaryExpr => Goto 5
+
+ stack: 5 PrimarExpr 0
+
+ current terminal : ADD("+")
+
+>>>
+
+ Reduce 10
+
+ 10: MultiplicativeExpr -> PrimaryExpr 
+
+ stack: 0
+
+ 0, MultiplicativeExpr => Goto 4
+
+ stack: 4 MultiplicativeExpr 0
+
+ current terminal : ADD("+")
+
+>>>
+
+ Reduce 7
+
+ 7: AdditiveExpr -> MultiplicativeExpr
+
+ stack: 0
+
+ 0, AdditiveExpr => Goto 3
+
+ stack: 3 AdditiveExpr 0
+
+ current terminal : ADD("+")
+
+>>>
+
+ Shift 10
+
+ stack: 10 + 3 AdditiveExpr 0
+
+ current terminal : integer_number("2")
+
+>>>
+
+ Shift 7
+
+ stack: 7 2 10 + 3 AdditiveExpr 0
+
+ current terminal : MUL("*") 
+
+>>>
+
+ Reduce 12
+
+ 12: PrimaryExpr -> integer_number
+
+ stack: 10 + 3 AdditiveExpr 0
+  
+ 10, PrimaryExpr => 5
+
+ stack: 5 PrimaryExpr 10 + 3 AdditiveExpr 0
+
+ current terminal : MUL("*") 
+
+>>>
+
+ Reduce 10
+
+ 10: MultiplicativeExpr -> PrimaryExpr
+
+ stack: 10 + 3 AdditiveExpr 0
+
+ 10, MultiplicativeExpr => 17
+
+ stack: 17 MultiplicativeExpr 10 + 3 AdditiveExpr 0
+
+ current terminal : MUL("*") 
+
+>>>
+
+ Shift 12
+
+ stack: 12 * 17 MultiplicativeExpr 10 + 3 AdditiveExpr 0
+
+ current terminal : integer_number("3")
+
+>>>
+
+ Shift 7
+
+ stack: 7 3 12 * 17 MultiplicativeExpr 10 + 3 AdditiveExpr 0
+
+ current terminal : end_of_token("$")
+
+>>>
+
+ Reduce 12
+
+ 12: PrimaryExpr -> integer_number
+
+  stack: 12 * 17 MultiplicativeExpr 10 + 3 AdditiveExpr 0
+
+ 12, PrimaryExpr => Goto 20
+
+ stack: 20 PrimaryExpr 12 * 17 MultiplicativeExpr 10 + 3 AdditiveExpr 0
+
+ current terminal : end_of_token("$")
+
+>>>
+
+ Reduce 8
+
+ 8: MultiplicativeExpr -> MultiplicativeExpr * PrimaryExpr 
+
+ stack: 10 + 3 AdditiveExpr 0
+
+ 10, MultiplicativeExpr => Goto 17
+
+ stack: 17 MultiplicativeExpr 10 + 3 AdditiveExpr 0
+
+ current terminal : end_of_token("$")
+
+>>>
+
+ Reduce 5
+
+ 5: AdditiveExpr -> AdditiveExpr + MultiplicativeExpr 
+
+ stack: 0
+
+ 0, AdditiveExpr => Goto 3
+
+ stack: 3 AdditiveExpr 0
+
+ current terminal : end_of_token("$")
+
+>>>
+
+ Reduce 4
+
+ 4: AssignExpr -> AdditiveExpr
+
+ stack: 0
+
+ 0, AssignExpr => Goto 2
+
+ stack: 2 AssignExpr 0
+
+ current terminal : end_of_token("$")
+
+>>>
+
+ Reduce 2
+
+ 2: SeqExpr -> AssignExpr 
+
+ stack: 0
+
+ 0, SeqExpr => Goto 1
+
+ stack: 1 SeqExpr 0
+
+ current terminal : end_of_token("$")
+
+>>>
+
+ Accept
+
+지금까지  오토마톤   알고리즘을  적용하는  과정을   살펴보았지만  아직
+추상구문트리를 만든 것은 아니다.
+
+추상구문트리를  만들기   위해서  Reduce  i  액션을   취할때마다  i번째
+생산규칙에 대해 추상구문트리를 만드는 Java코드를 호출해주어야 한다.
+
+그래서 Reduce i 액션들만을 일단 모두 모아보자.
+
+ Reduce 12
+  12: PrimaryExpr -> integer_number
+ Reduce 10
+  10: MultiplicativeExpr -> PrimaryExpr 
+ Reduce 7
+   7: AdditiveExpr -> MultiplicativeExpr
+ Reduce 12
+  12: PrimaryExpr -> integer_number
+ Reduce 10
+  10: MultiplicativeExpr -> PrimaryExpr
+ Reduce 12
+  12: PrimaryExpr -> integer_number
+ Reduce 8
+   8: MultiplicativeExpr -> MultiplicativeExpr * PrimaryExpr 
+ Reduce 5
+   5: AdditiveExpr -> AdditiveExpr + MultiplicativeExpr 
+ Reduce 4
+   4: AssignExpr -> AdditiveExpr
+ Reduce 2
+   2: SeqExpr -> AssignExpr 
+
+Reduce   i에서   언급한    각   생산규칙을   참고하여   추상구문트리를
+만들어보자.
+
+ - 참고로, 아래 설명에서 사용한 스택은 본질적으로 위의 설명에서 사용한
+   스택과 동일하지만  추상구문트리를 만드는 과정을 담고  있다는 점에서
+   ast_stack(그냥 stack이라 하지 않고)이라 이름지었다.
+
+ Reduce 12
+  12: PrimaryExpr -> integer_number("1")
+
+  return new Lit("1")
+  ast_stack: []
+
+ Reduce 10
+  10: MultiplicativeExpr -> PrimaryExpr
+
+  return PrimaryExpr이 가리키는 추상구문트리
+  ast_stack: [new Lit("1")]
+  
+ Reduce 7
+   7: AdditiveExpr -> MultiplicativeExpr
+
+  return MultiplicativeExpr가 가리키는 추상구문트리
+  ast_stack: [new Lit("1")]
+
+ Reduce 12
+  12: PrimaryExpr -> integer_number("2")
+
+  return new Lit("2")
+  ast_stack: [ new Lit("2"), new Lit("1") ]
+
+ Reduce 10
+  10: MultiplicativeExpr -> PrimaryExpr
+  
+  return PrimaryExpr이 가리키는 추상구문트리
+  ast_stack: [ new Lit("2"), new Lit("1") ]
+  
+ Reduce 12
+  12: PrimaryExpr -> integer_number("3")
+
+  return new Lit("3")
+  ast_stack: [ new Lit("3"), new Lit("2"), new Lit("1") ]
+
+ Reduce 8
+   8: MultiplicativeExpr -> MultiplicativeExpr * PrimaryExpr
+   
+  ast_stack: [ new BinOp(BinOp.MUL, new Lit("3"), new Lit("2"))
+         , new Lit("1") ]
+  
+ Reduce 5
+   5: AdditiveExpr -> AdditiveExpr + MultiplicativeExpr
+   
+  ast_stack: [
+      new BinOp(BinOp.ADD,
+      	      new Lit("1")
+	      new BinOp(BinOp.MUL,
+	      	  new Lit("3"),
+		  new Lit("2")))
+	 ]
+
+ Reduce 4
+   4: AssignExpr -> AdditiveExpr
+
+  ast_stack: [
+      new BinOp(BinOp.ADD,
+      	      new Lit("1")
+	      new BinOp(BinOp.MUL,
+	      	  new Lit("3"),
+		  new Lit("2")))
+	 ]
+
+Reduce 2
+   2: SeqExpr -> AssignExpr 
+
+  ast_stack: [
+      new BinOp(BinOp.ADD,
+      	      new Lit("1")
+	      new BinOp(BinOp.MUL,
+	      	  new Lit("3"),
+		  new Lit("2")))
+	 ]
+
+Accept
+
+  스택 탑에 있는 추상구문트리가 구문분석한 결과가 된다!
+
+
+=============================================================
 
 위  알고리즘은 문법으로부터  유도한  오토마톤에  따라 주어진  텍스트가
 문법에 맞는 구조를 갖으면  받아들이고 그렇지않으면 에러를 낸다. 하지만
@@ -1230,8 +1602,8 @@ Q. 소스프로그램의  텍스트로 1  + x를  가정하고, 소개한  3가지 테이블을
 
 5.3.1 토큰 클래스
 
-먼저 토큰을  정의해야 한다. swlab_parser 라이브러리에서  토큰을 Java의
-열거형 클래스로 정의한다.
+먼저   터미널에   해당하는    토큰을   정의해야   한다.   swlab_parser
+라이브러리에서 토큰을 Java의 열거형 클래스로 정의한다.
 
   - END_OF_TOKEN
   - OPEN_PAREN, CLOSE_PAREN
@@ -1422,6 +1794,31 @@ public interface TokenBuilder<Token> {
 	public Token tokenBuilder(String tokenText);
 }
 
+class Token implements TokenInterface<Token> {
+  ...
+  // pu는 swlab 파서 라이브러리이다.
+  pu.lex("[0-9]+",  text -> { return Token.INTEGER_NUMBER; } );
+  ...
+}  
+
+Java로 작성한 ``text -> { return Token.INTEGER_NUMBER; }'' 부분은
+TokenBuilder 인터페이스를 만족하는 객체가 된다.
+
+swlab 라이브러리에서 다음과 같은 과정을 거친다.
+
+ 1. 정규식 "[0-9]+"을 만족하는 텍스트, 예를 들어 "123",를 찾는다.
+ 2. tokenBuilder("123")를 호출하여
+    ``text -> { return Token.INTEGER_NUMBER; }'' 를 실행한다.
+ 3. 그러면 인자 text는 "123"이 되어 INTEGER_NUMBER토큰을 리턴한다.
+ 4. 라이브러리에서 이 토큰을 받아 터미널
+     new Terminal(
+       "123",
+       INTEGER_NUMBER("integer_number"),
+       컬럼 시작 위치,
+       줄 시작 위치)
+
+    를 만든다.
+
 Parser에서   생산규칙을   사용할   때  트리를   만들기   위해   코드를
 지정한다. 이때 코드를 작성하기 위해 TreeBuilder 인터페이스를 사용한다.
 
@@ -1429,11 +1826,54 @@ public interface TreeBuilder {
 	public Object treeBuilder();
 }
 
-다음은  swlab_parser   라이브러리에서  가장  중요한   클래스다. 
+class Parser {
+  ...
+  // pu는 swlab 파서 라이브러리이다.
+  pu.rule("AdditiveExpr -> AdditiveExpr + MultiplicativeExpr",
+    () -> { 
+	Expr additiveexpr = (Expr)pu.get(1);
+	Expr multiplicativeexpr = (Expr)pu.get(3);
+	return new BinOp(BinOp.ADD, additiveexpr, multiplicativeexpr); 
+     }
+  );  
+  ...
+}
+
+Java로  작성한  ``()->  {  ...  }''  부분은  TreeBuilder  인터페이스를
+만족하는 객체가 된다.
+
+swlab 라이브러리에서 다음과 같은 과정을 거친다.
+
+ 1. 생산규칙을 만족할때마다(Reduce i 액션을 취할때마다)
+ 2. treeBuilder()를 호출하여 ``() -> { ... }'' 을 실행한다.
+    명시적으로 인자를 통해서 전달하는 것은 아니지만 묵시적으로
+    오토마톤의 스택을 이 코드에서 사용할 수 있다.
+ 3. new BinOp(BinOp.ADD, ... , ...) 추상구문트리를 만들어 리턴한다.
+    이때, pu.get(1), pu.get(3)는 각각 오토마톤 스택에 저장되어 있는
+    AdditiveExpr 넌터미널에 해당하는 서브-추상구문트리와
+    MultiplicativeExpr 넌터미널에 해당하는 서브-추상구문트리를 가져온다.
+
+	Expr additiveexpr = (Expr)pu.get(1);
+	Expr multiplicativeexpr = (Expr)pu.get(3);
+
+    결과적으로 new BinOp(BinOp.ADD, additiveexpr, multiplicativeexpr)
+    추상구문트리를 만든다.
+
+ 4. 라이브러리에서 이 추상구문트리를 받고, 오토마톤 알고리즘의 그 다음
+    단계를 진행한다.
+
+
+Lexical analysis와 Syntactic analysis의 공통 부분을 실행하는 클래스가
+CommonParserUtil이다.
+
+이 클래스는 swlab_parser   라이브러리에서  가장  중요한   클래스다. 
 
  - class CommonParserUtil<Token extends TokenInterface<Token>>
 
-이 클래스를 사용하기 위하여 
+   1) Lexing 메소드
+   2) Parsing 메소드
+
+요약하자마면, 이 클래스를 사용하기 위하여 
 
  - 토큰을 정의한 Token 클래스와
  - Lexer의 정규식과 문자열을 토큰으로 변환하는 코드 목록과
@@ -1540,7 +1980,35 @@ public class Main {
 공부하기 위한 예제로 적하하고, swlab 파서 라이브러리를 설명하는 문서로
 사용할 수 있다.
 
+7.1 swlab 파서 라이브러리와 파성 생성 도구와 비교
 
+swlab 파서는 라이브러리 사용 접근 방법으로 파서를 만드는 특징을 가지고
+있다.
 
+보통 다른 파서 도구는 파서를 생성하는 접근 방법을 사용하고 있다. 즉,
+
+  - 입력: 정규식 + 토큰 생성 코드 + 생산규칙 + 추상구문트리 생성 코드
+  - 출력: Parser.java + CommonParserUtil.java에 있는 내용을 혼합한 파서 코드
+
+특히 오토마톤 알고리즘에서 Reduce i 대신 Reduce 0부터 Reduce N으로 분류하고
+(생산규칙의 전체 갯수가 N이라고 가정) Parser.java에서 작성한 각 생산규칙에
+해당하는 추상구문트리 생성 코드를 직접 사용하는 형태이다.
+
+그리고,   액션테이블과   고우투테이블을   배열  형태로   가지고   있을
+것이다. 이때, 생산규칙들을 가지고 있는 생산규칙 테이블은 별도로 가지고
+있지 않고 출력한 코드에서 생산규칙 테이블에서 얻고자 했던 정보인 RHS의
+길이와 너터미널 심볼을 이미 참조한 코드가 포함되어 있을 것이다.
+
+파서 라이브러리 접근 방법과 파성  생성 방법은 서로 장단점이 있다. 파서
+생성 방법은 파서 프로그램을 C,  C++, Java와 같은 특정 프로그래밍언어로
+생성하하는  방법은 비교적  'heavyweight'한데  비하여,  C, C++,  Java로
+CommonParserUtil 모듈만 작성하면 파서 라이브러리 방법을 사용할 수 있기
+때문에  상대적으로  'lightweight'하다.    참고로  Java로  작성한  파서
+라이브러리에서  CommonParserUtil.java의 크기는  600라인 규모이다.   C,
+C++,  Python, Haskell  등으로 만들때도  이 크기는  크게 늘어나지  않을
+것으로  보인다.  따라서  각   프로그래밍언어  별로  파서  라이브러리를
+준비해놓으면,  액션테이블,   고우투테이블,  생산규칙테입을을  생성하는
+genlrparser.exe는  공유할  수  있기 때문에  파서를  작성하는데  사용할
+프로그래밍언어의 선택이 넓어진다.
 
 

@@ -24,7 +24,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 	private BufferedReader br;
 	private ArrayList<String> lineArr;
-	private ArrayList<Terminal<Token>> lexer;
+	private ArrayList<Terminal<Token>> terminalList;
 
 	// Important: Use LinkedHashMap instead of HashMap
 	//            to maintain the order in which each lexical 
@@ -48,7 +48,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	private String workingdir = "./";
 
 	public CommonParserUtil() throws IOException {
-		this.lexer = new ArrayList<Terminal<Token>>();
+		this.terminalList = new ArrayList<Terminal<Token>>();
 
 		stack = new Stack<>();
 
@@ -184,7 +184,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 						
 						tb = tokenBuilders.get(regExp);
 						if (tb.tokenBuilder(str) != null) {
-							lexer.add(new Terminal<Token>(str, tb.tokenBuilder(str), startIdx, lineno));
+							terminalList.add(new Terminal<Token>(str, tb.tokenBuilder(str), startIdx, lineno));
 						}
 						
 						str = "";
@@ -202,10 +202,10 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 
 		tb = tokenBuilders.get(endOfTok);
 		Terminal<Token> epsilon = new Terminal<Token>(endOfTok, tb.tokenBuilder(endOfTok), -1, -1);
-		lexer.add(epsilon);
+		terminalList.add(epsilon);
 		
 		if (debug) {
-			for(Terminal<Token> t : lexer) {
+			for(Terminal<Token> t : terminalList) {
 				System.out.print(t.getToken() + "[" + t + "] ");
 			}
 		}
@@ -226,9 +226,9 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 		stack.push(new ParseState("0"));
 		Object tree = null;
 
-		while (!lexer.isEmpty()) {
+		while (!terminalList.isEmpty()) {
 			ParseState currentState = (ParseState) stack.lastElement();
-			Terminal<Token> currentTerminal = lexer.get(0);
+			Terminal<Token> currentTerminal = terminalList.get(0);
 			
 			if (debug) {
 				System.out.println("Line " + currentTerminal.getLineIndex() 
@@ -243,18 +243,18 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 				System.out.println();
 			}
 
-			ArrayList<String> data_arr = Check_state(currentState, currentTerminal, lexer);
+			ArrayList<String> data_arr = Check_state(currentState, currentTerminal, terminalList);
 			String order = data_arr.get(0); // Accept | Reduce | Shift
 
 			switch (order) {
 			case "Accept":
-				lexer.remove(0);
+				terminalList.remove(0);
 				return ((Nonterminal) stack.get(1)).getTree();
 			case "Shift":
 				String state = data_arr.get(1);
 				stack.push(currentTerminal);
 				stack.push(new ParseState(state));
-				lexer.remove(0);
+				terminalList.remove(0);
 				break;
 			case "Reduce":
 				int grammar_rule_num = Integer.parseInt(data_arr.get(1));
@@ -264,16 +264,16 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 				String[] reduce_arr = grammar_rule.split("->", 2);
 				String lhs = reduce_arr[0].trim();
 				String rhs;
-				int rhsCount;
+				int rhsLength;
 
 				if (1 < reduce_arr.length && reduce_arr[1].length() > 0) // -> "empty"
 				{
 					rhs = reduce_arr[1].trim();
-					rhsCount = rhs.split(" ").length; // *2 => pop count.
+					rhsLength = rhs.split(" ").length; // *2 => pop count.
 				}
 				else {
 					rhs = "";
-					rhsCount = 0;
+					rhsLength = 0;
 				}
 				
 				TreeBuilder tb = treeBuilders.get(grammar_rules.get(grammar_rule_num));
@@ -289,17 +289,17 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 				}
 
 				// pop stack
-				while (rhsCount != 0) {
+				while (rhsLength != 0) {
 					stack.pop();
 					stack.pop();
-					rhsCount--;
+					rhsLength--;
 				}
 
 				currentState = (ParseState) stack.lastElement();
 
 				stack.push(new Nonterminal(tree));
 				
-				stack.push(get_st(currentState, lhs, lexer));
+				stack.push(get_st(currentState, lhs, terminalList));
 				break;
 			}
 		}
