@@ -18,8 +18,9 @@ public class Parser {
 	}
 	
 	public void LexicalAnalysis(CommonParserUtil<Token> pu) {
+		pu.lexEndToken(Token.END_OF_TOKEN);
+		
 		pu.lex("[ \t\n]", text -> { return null; });
-		pu.lexEndToken("\\$", text -> { return Token.END_OF_TOKEN; });
 		
 		pu.lexKeyword("address", text -> { return Token.ADDRESS; });
 		pu.lexKeyword("anonymous", text -> { return Token.ANONYMOUS; });

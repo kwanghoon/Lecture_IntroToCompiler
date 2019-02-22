@@ -13,6 +13,8 @@ public class Parser {
 	public Parser() throws IOException, LexerException {
 		pu = new CommonParserUtil<Token>();
 		
+		pu.lexEndToken(Token.END_OF_TOKEN);
+		
 		pu.lex("[ \t\n]", text -> { return null; });
 		pu.lex("[0-9]+", text -> { return Token.NUM; });
 		pu.lex("lam",  text -> {return Token.LAM; } );
@@ -25,7 +27,6 @@ public class Parser {
 		pu.lex("\\(", text -> { return Token.OPENPAREN; });
 		pu.lex("\\)", text -> { return Token.CLOSEPAREN; });
 		pu.lex("\\.", text -> { return Token.DOT; });
-		pu.lexEndToken("\\$", text -> { return Token.END_OF_TOKEN; });
 		
 		pu.ruleStartSymbol("L'");
 		pu.rule("L' -> L", () -> { return pu.get(1); });

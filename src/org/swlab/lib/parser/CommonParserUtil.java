@@ -20,7 +20,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 	
 	// Lexer part
 	private int lineno;
-	private String endOfTok;
+	private Token endOfTok;
 
 	private BufferedReader br;
 	private ArrayList<String> lineArr;
@@ -113,9 +113,8 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 		tokenBuilders.put(regExp + "(?![a-zA-Z])", tb);
 	}
 
-	public void lexEndToken(String regExp, TokenBuilder<Token> tb) {
-		tokenBuilders.put(regExp, tb);
-		endOfTok = regExp;
+	public void lexEndToken(Token token) {
+		endOfTok = token;
 	}
 
 	public void Lexing(Reader r) throws IOException, LexerException {
@@ -180,7 +179,6 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 						}
 						
 						str = line.substring(startIdx, endIdx);
-						matcher.region(endIdx, line.length());
 						
 						tb = tokenBuilders.get(regExp);
 						if (tb.tokenBuilder(str) != null) {
@@ -200,8 +198,7 @@ public class CommonParserUtil<Token extends TokenInterface<Token>> {
 			lineno++;
 		}
 
-		tb = tokenBuilders.get(endOfTok);
-		Terminal<Token> epsilon = new Terminal<Token>(endOfTok, tb.tokenBuilder(endOfTok), -1, -1);
+		Terminal<Token> epsilon = new Terminal<Token>(endOfTok.toString(endOfTok), endOfTok, -1, -1);
 		terminalList.add(epsilon);
 		
 		if (debug) {
