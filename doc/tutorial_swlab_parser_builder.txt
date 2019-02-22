@@ -288,8 +288,10 @@ C,  C++, Java,  Python,  JavaScript에서도  이렇게 해석하도록  정의�
 1 - 2 - 3에 대한 추상구문트리를 다음과 같이
 
  new BinOp(BinOp.SUB,
-     new Lit(1),
-      new BinOp(BinOp.SUB, new Lit(2), new Lit(3)))
+    new BinOp(BinOp.SUB,
+       new Lit(1),
+       new Lit(2)),
+    new Lit(3))
 
 작성하여  (1 -  2) -  3으로 왼쪽에서 차례로 뺄셈을 하도록 해석하는  것이 맞다.
 
