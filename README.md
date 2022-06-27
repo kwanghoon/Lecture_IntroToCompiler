@@ -20,6 +20,7 @@
 #### 추천 공부 코스: 1절 ~ 4절, 6절, 7절
  - 강의 내용 : doc/tutorial.txt
  - (5절은 파서를 만드는 내용으로 상대적으로 난이도가 높습니다.)
+ - Java에 대한 사전 지식 필요
 
 #### 참고
  - [YAPB](https://github.com/kwanghoon/yapb)을 윈도우용으로 미리 빌드한 바이너리를 사용하기 때문에 윈도우에서만 동작합니다 (genlrparser-exe.exe)
