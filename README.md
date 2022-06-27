@@ -19,6 +19,7 @@
 
 #### 추천 공부 코스: 1절 ~ 4절, 6절, 7절
  - 강의 내용 : doc/tutorial.txt
+ - 예제 코드 : src/org/swlab/lib/parser/examples/arith
  - (5절은 파서를 만드는 내용으로 상대적으로 난이도가 높습니다.)
  - Java에 대한 사전 지식 필요
 
