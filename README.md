@@ -19,6 +19,8 @@
 #### 추천 공부 코스: 1절 ~ 4절, 6절, 7절
  - (5절은 파서를 만드는 내용으로 상대적으로 난이도가 높습니다.)
 
+#### 참고
+ - [YAPB](https://github.com/kwanghoon/yapb)을 윈도우용으로 미리 빌드한 바이너리를 사용하기 때문에 윈도우에서만 동작합니다 (genlrparser-exe.exe)
 
 ## Contributor
 - 최광훈
