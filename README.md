@@ -27,6 +27,7 @@
 #### 참고
  - [YAPB](https://github.com/kwanghoon/yapb)을 윈도우용으로 미리 빌드한 바이너리를 사용하기 때문에 윈도우에서만 동작합니다 (genlrparser-exe.exe)
 
-#### 작성자
+#### 기여한 사람
 - 전남대 소프트웨어공학과 최광훈
+- 김가영
  
