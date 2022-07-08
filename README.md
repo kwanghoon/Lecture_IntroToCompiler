@@ -2,7 +2,7 @@
 
 ## 학습 목표
 - 추상 구문 트리(Abstract syntax tree)를 이해하고 자료구조로 표현하기
-- 낱말 분석(lexcical analysis)과 구문 분석(syntax analysis) 이해하기
+- 낱말 분석(lexical analysis)과 구문 분석(syntax analysis) 이해하기
 - 추상 구문 트리를 입력으로 받는 프로그램을 작성하기 
 - 추상 구문 트리를 출력으로 내는 프로그램을 작성하기
 - 추상 구문 트리로 표현된 프로그램을 실행하기 (해석기 - interpreter)
