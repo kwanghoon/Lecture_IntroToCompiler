@@ -20,17 +20,17 @@
 
 Arith 프로그래밍언어의 식을 Java로 작성할 수 있다.
 
- - x = 123
+ - `x = 123`
     
 ```java
 	new Assign("x", new Lit(123))
 ```
- - x = x + 1
+ - `x = x + 1`
 ```java
 	new Assign("x", 
 		new BinOp(BinOp.ADD, new Var("x"), new Lit(1)))
 ```
- - y - 1 * 2 / 3
+ - `y - 1 * 2 / 3`
 
 ```java
 	new BinOp(BinOp.SUB,
@@ -39,7 +39,7 @@ Arith 프로그래밍언어의 식을 Java로 작성할 수 있다.
 			new BinOp(BinOp.MUL, new Lit(1), new Lit(2)),
 			new Lit(3)))
 ```
- - x = 123 ; x = x + 1
+ - `x = 123 ; x = x + 1`
 ```java
 	Expr[] exprs = {
 		new Assign("x", new Lit(123)),
@@ -50,20 +50,20 @@ Arith 프로그래밍언어의 식을 Java로 작성할 수 있다.
 	exprSeq = new ArrayList<Expr>(Arrays.asList(exprs));
 ```
 
-위에서 보여준  Java 코드를 **추상구문트리(Abstract syntax  tree)**라 한다.
+위에서 보여준  Java 코드를 **추상구문트리(Abstract syntax  tree)** 라 한다.
 추상구문트리는   소스프로그램의   구문을   트리   자료구조(tree   data
 structure)로 요약해서 표현한 것이다.
 
 위 추상구문 트리를 위해서 Java 클래스들을 준비해두어야 한다.
 
  - arith.ast 패키지의 클래스들
-     Expr
-     Assign extends Expr
-     BinOp extends Expr
-     Lit extends Expr
-     Var extends Expr
+    - `Expr`
+    - `Assign extends Expr`
+    - `BinOp extends Expr`
+    - `Lit extends Expr`
+    - `Var extends Expr`
 
- - 세미콜론으로  구분된   식들을  표현할  때   Java의  ArrayList<Expr>
+ - 세미콜론으로  구분된   식들을  표현할  때   Java의  `ArrayList<Expr>`
    클래스를 사용한다.
 
 ### Q. 다음 식을 Java로 작성한 추상구문트리를 만들어보시오.
@@ -156,7 +156,7 @@ HashMap<String,Integer> env = new HashMap<String,Integer>();
    env.put("z", 0);
 ```
 
- - env.get("x")는 124가 될 것이다.
+ - `env.get("x")`는 124가 될 것이다.
 
 프로그램언어 Arith의 해석기를 `Interp` 클래스의 `seq`함수와 `expr`함수로 작성해보자.
 
