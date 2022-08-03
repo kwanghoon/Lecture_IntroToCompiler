@@ -7,15 +7,15 @@
 
 각 명령어를 표현하는 추상구문트리를 위해서 Java 클래스들을 정의하였다.
 
- - Instr
- - Push extends Instr
- - Pop extends Instr
- - InstrOp extends Instr
- - Store extends Instr
+ - `Instr`
+ - `Push extends Instr`
+ - `Pop extends Instr`
+ - `InstrOp extends Instr`
+ - `Store extends Instr`
 
 예를  들어,  왼편의  가상기계 명령어를  오른편과  같이  추상구문트리를
 만든다.
-
+```java
  Push 2      Instr i1 = new Push(2);
  Push 1      Instr i2 = new Push(1);
  Store x     Instr i3 = new Store("x");
@@ -27,8 +27,8 @@
 
              Instr[] instrArr = {i1,i2,i3,i4,i5,i6,i7,i8};
              ArrayList<Instr> instrs
-	       = new ArrayList<Instr>(Arrays.asList(instrArr);
-
+	       		= new ArrayList<Instr>(Arrays.asList(instrArr);
+```
 각 명령어에 대해 동일한 이름의 Java 클래스를 작성하였다.
 
  - `Push` 클래스는 `Push(2)` 또는 `Push("x")`와 같이 숫자나 변수를 지정할 수
@@ -37,7 +37,7 @@
  - 산술계산을 위한 명령어를 표현하기 위해  `ADD`, `SUB`, `MUL`, `DIV` 클래스가
    있다. 가상기계의  스택에 숫자를 꺼내 계산하기  때문에 별도의 인자를
    지정하지 않는다.
- - Pop 클래스에도 별도의 인자를 지정하지 않는다.
+ - `Pop` 클래스에도 별도의 인자를 지정하지 않는다.
 
 타겟프로그램은 이러한 클래스로 작성한 객체들을 Java의 `ArrayList<Instr>`
 클래스로 순서대로 모아 리스트로 만들어 작성한다.
@@ -107,16 +107,16 @@ void interp(
 		Integer v = stack.pop();
 		env.put(varName, v);
 	} 
-   }
+}
 ```
 이렇게  작성한  가상기계  해석기를  사용하여  타겟프로그램을  실행하는
 방법은 다음과 같다.
-
- - ArrayList<Instr> instrs = ... 추상구문트리 ...
-   HashMap<String,Integer> env = new HashMap<String,Integer>();
+```java
+	ArrayList<Instr> instrs = ... 추상구문트리 ...
+	HashMap<String,Integer> env = new HashMap<String,Integer>();
 		
-   VM.run(instrs, env);
-
+	VM.run(instrs, env);
+```
 instrs는  주어진  타겟프로그램의 추상구문트리이고,  해석기를  실행하기
 전에 초기 환경 env를 만든다.
 
