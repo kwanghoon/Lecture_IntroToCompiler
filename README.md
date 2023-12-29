@@ -18,7 +18,7 @@
 
 
 ### 추천 공부 코스: 1절 ~ 4절, 6절, 7절
- - 강의 내용 : doc/tutorial.txt
+ - 강의 내용 : [통 버전-텍스트 파일](doc/tutorial.txt)
  - 예제 코드 : src/org/swlab/lib/parser/examples/arith/{ast,comp,parser,vm}
  - 각 예제 코드 서브 디렉토리 안에 test 디렉토리를 참고하면 코드를 이해하는데 도움이 됩니다.
  - (5절은 파서를 만드는 내용으로 상대적으로 난이도가 높습니다.)
